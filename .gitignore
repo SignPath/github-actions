@@ -1,0 +1,8 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/node_modules
+/actions/submit-signing-request/node_modules
+/actions/**/*.js
+!/**/dist/*.js

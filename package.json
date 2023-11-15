@@ -1,0 +1,32 @@
+{
+  "dependencies": {
+    "axios": "^0.27.2",
+    "filesize": "^10.0.5"
+  },
+  "scripts": {
+    "build": "node make.js build",
+    "test": "node make.js test",
+    "lint": "tslint --project tsconfig.json"
+  },
+  "name": "signpath.connectors.githubactions.actions",
+  "version": "1.0.0",
+  "description": "Use SignPath to sign your build artifacts.",
+  "devDependencies": {
+    "@types/chai": "^4.3.5",
+    "@types/mocha": "^9.1.1",
+    "@types/node": "^18.7.23",
+    "@types/q": "^1.5.5",
+    "@types/sinon": "^10.0.13",
+    "@vercel/ncc": "^0.36.1",
+    "chai": "^4.3.7",
+    "minimist": "^1.2.6",
+    "mocha": "^10.2.0",
+    "mock-require": "^3.0.3",
+    "sinon": "^15.0.0",
+    "ts-loader": "^9.4.2",
+    "tslint": "^6.1.3",
+    "typescript": "^4.9.5",
+    "webpack": "^5.80.0",
+    "webpack-cli": "^5.0.2"
+  }
+}
