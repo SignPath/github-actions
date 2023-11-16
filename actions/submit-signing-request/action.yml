@@ -4,7 +4,7 @@ description: 'Submits signing request to SignPath and downloads the signed artif
 inputs:
   connector-url:
     description: 'GitHub Actions SignPath connector URL'
-    default: 'https://CONNECTOR_URL'
+    default: 'https://githubactions.connectors.signpath.io'
     required: true
   api-token:
     description: 'SignPath REST API access token. More details: https://about.signpath.io/documentation/build-system-integration#authentication'
@@ -19,10 +19,10 @@ inputs:
     description: 'SignPath signing policy slug'
     required: true
   artifact-configuration-slug:
-    description: 'SignPath artifact configuration'
+    description: 'SignPath artifact configuration slug'
     required: true
   artifact-name:
-    description: 'Name of the artifact to sign'
+    description: 'Name of the Github Actions artifact'
     required: true
   signed-artifact-destination-path:
     description: 'Path where the signed artifact will be saved, if empty then the task will not download the artifact from SignPath'
