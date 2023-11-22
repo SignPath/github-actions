@@ -35162,7 +35162,7 @@ class Task {
             }
             else {
                 if (requestData.status !== "Completed") {
-                    throw new Error(`The signing request is not completed. The final status is "${requestData.status}`);
+                    throw new Error(`The signing request is not completed. The final status is "${requestData.status}"`);
                 }
             }
             return requestData;

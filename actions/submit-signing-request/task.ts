@@ -219,7 +219,7 @@ export class Task {
             throw new Error(`The signing request is not completed. The current status is "${requestData.status}`);
         } else {
             if (requestData.status !== "Completed") {
-                throw new Error(`The signing request is not completed. The final status is "${requestData.status}`);
+                throw new Error(`The signing request is not completed. The final status is "${requestData.status}"`);
             }
         }
 
