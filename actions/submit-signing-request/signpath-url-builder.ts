@@ -3,12 +3,12 @@ export class SignPathUrlBuilder {
     public signPathBaseUrl: string = 'https://signpath.io';
 
     constructor(
-        private signPathGithHbConnectorBaseUrl: string) {
-        this.signPathGithHbConnectorBaseUrl = this.trimSlash(this.signPathGithHbConnectorBaseUrl);
+        private signPathGitHubConnectorBaseUrl: string) {
+        this.signPathGitHubConnectorBaseUrl = this.trimSlash(this.signPathGitHubConnectorBaseUrl);
     }
 
     buildSubmitSigningRequestUrl(): string {
-        return this.signPathGithHbConnectorBaseUrl  + '/api/sign';
+        return this.signPathGitHubConnectorBaseUrl  + '/api/sign';
     }
 
     buildGetSigningRequestUrl(organizationId: string, signingRequestId: string): string {

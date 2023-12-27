@@ -34917,13 +34917,13 @@ exports["default"] = _default;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SignPathUrlBuilder = void 0;
 class SignPathUrlBuilder {
-    constructor(signPathGithHbConnectorBaseUrl) {
-        this.signPathGithHbConnectorBaseUrl = signPathGithHbConnectorBaseUrl;
+    constructor(signPathGitHubConnectorBaseUrl) {
+        this.signPathGitHubConnectorBaseUrl = signPathGitHubConnectorBaseUrl;
         this.signPathBaseUrl = 'https://signpath.io';
-        this.signPathGithHbConnectorBaseUrl = this.trimSlash(this.signPathGithHbConnectorBaseUrl);
+        this.signPathGitHubConnectorBaseUrl = this.trimSlash(this.signPathGitHubConnectorBaseUrl);
     }
     buildSubmitSigningRequestUrl() {
-        return this.signPathGithHbConnectorBaseUrl + '/api/sign';
+        return this.signPathGitHubConnectorBaseUrl + '/api/sign';
     }
     buildGetSigningRequestUrl(organizationId, signingRequestId) {
         if (!this.signPathBaseUrl) {
