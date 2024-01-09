@@ -11,7 +11,7 @@ Currently, there is only one action available, `submit-signing-request`.
 
 This action allows you to sign the build artifact using SignPath signing services.
 
-See [action.yml](actions/submit-signing-request/action.yml)
+For a definition of the parameters, see [action.yml](actions/submit-signing-request/action.yml)
 
 ### Prerequisites
 
