@@ -13,6 +13,15 @@ This action allows you to sign the build artifact using SignPath signing service
 
 For a definition of the parameters, see [action.yml](actions/submit-signing-request/action.yml)
 
+### Permissions for the `github-token`
+
+The action requires the provided `github-token` to have the following permissions:
+
+* `actions:read`
+* `content:read` 
+
+The [default `secrets.GITHUB_TOKEN`](https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token) already includes these permissions.
+
 ### Prerequisites
 
 * The Github Actions Trusted Build System must be enabled in the organization and linked to the respective project.
