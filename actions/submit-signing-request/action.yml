@@ -24,7 +24,7 @@ inputs:
   artifact-name:
     description: 'Name of the Github Actions artifact'
     required: true
-  signed-artifact-destination-path:
+  output-artifact-directory:
     description: 'Path where the signed artifact will be saved, if empty then the task will not download the artifact from SignPath'
     required: false
   github-token:

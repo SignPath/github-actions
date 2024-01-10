@@ -4,9 +4,12 @@
     "@actions/http-client": "^2.1.0",
     "@actions/artifact": "^1.1.1",
     "axios": "^0.27.2",
-    "filesize": "^10.0.5",
     "moment": "^2.29.4",
-    "polly-js": "^1.8.3"
+    "polly-js": "^1.8.3",
+    "unzip-stream": "^0.3.1"
+  },
+  "devDependencies": {
+    "@types/unzip-stream": "^0.3.4"
   },
   "name": "signpath.connectors.githubactions.tasks.submit-signing-request"
 }
