@@ -244,7 +244,7 @@ export class Task {
              writer.on('finish', resolve)
              writer.on('error', reject)
         });
-        
+
         // unzip temp ZIP file to the targetDirectory
         const zip = new nodeStreamZip.async({ file: tmpZipFile });
         await zip.extract(null, targetDirectory);
