@@ -3,7 +3,8 @@ import * as core from '@actions/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as moment from 'moment';
-import decompress from 'decompress';
+import * as nodeStreamZip from 'node-stream-zip';
+
 import url from 'url';
 import { SubmitSigningRequestResult } from './dtos/submit-signing-request-result';
 import { executeWithRetries } from './utils';
@@ -236,16 +237,17 @@ export class Task {
         core.info(`The signed artifact is being downloaded from SignPath and will be saved to ${targetDirectory}`);
 
         // save the signed artifact to temp ZIP file
-        const tmpZipFile = path.join(targetDirectory, 'signpath_signed_artifact_tmp.zip');
+        const tmpZipFile = path.join(targetDirectory, '__signpath_signed_artifact_tmp.zip');
         const writer = fs.createWriteStream(tmpZipFile)
         response.data.pipe(writer);
         await new Promise((resolve, reject) => {
-            writer.on('finish', resolve)
-            writer.on('error', reject)
+             writer.on('finish', resolve)
+             writer.on('error', reject)
         });
-
+        
         // unzip temp ZIP file to the targetDirectory
-        await decompress(tmpZipFile, targetDirectory);
+        const zip = new nodeStreamZip.async({ file: tmpZipFile });
+        await zip.extract(null, targetDirectory);
 
         // delete temp ZIP file
         fs.unlinkSync(tmpZipFile);
