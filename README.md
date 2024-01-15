@@ -11,7 +11,16 @@ Currently, there is only one action available, `submit-signing-request`.
 
 This action allows you to sign the build artifact using SignPath signing services.
 
-See [action.yml](actions/submit-signing-request/action.yml)
+For a definition of the parameters, see [action.yml](actions/submit-signing-request/action.yml)
+
+### Permissions for the `github-token`
+
+The action requires the provided `github-token` to have the following permissions:
+
+* `actions:read`
+* `content:read` 
+
+The [default `secrets.GITHUB_TOKEN`](https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token) already includes these permissions.
 
 ### Prerequisites
 
