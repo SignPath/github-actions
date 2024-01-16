@@ -36415,8 +36415,8 @@ class Task {
             }
             finally {
                 core.debug(`Deleting temp directory ${tmpDir}`);
-                // delete the temp DIR
-                fs.unlinkSync(tmpDir);
+                // delete the temp ZIP
+                fs.unlinkSync(tmpZipFile);
             }
             core.info(`The signed artifact has been successfully downloaded from SignPath and extracted to ${targetDirectory}`);
         });
