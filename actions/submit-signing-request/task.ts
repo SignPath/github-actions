@@ -1,9 +1,11 @@
 import axios, { AxiosError } from 'axios';
 import * as core from '@actions/core';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import * as moment from 'moment';
 import * as nodeStreamZip from 'node-stream-zip';
+
 
 import url from 'url';
 import { SubmitSigningRequestResult } from './dtos/submit-signing-request-result';
@@ -236,21 +238,35 @@ export class Task {
 
         core.info(`The signed artifact is being downloaded from SignPath and will be saved to ${targetDirectory}`);
 
+
+        const tmpDir = fs.mkdtempSync(`${os.tmpdir()}${path.sep}`);
+        core.debug(`Created temp directory ${tmpDir}`);
+
         // save the signed artifact to temp ZIP file
-        const tmpZipFile = path.join(targetDirectory, '__signpath_signed_artifact_tmp.zip');
-        const writer = fs.createWriteStream(tmpZipFile)
+        const tmpZipFile = path.join(tmpDir, 'artifact_tmp.zip');
+        const writer = fs.createWriteStream(tmpZipFile);
         response.data.pipe(writer);
         await new Promise((resolve, reject) => {
-             writer.on('finish', resolve)
-             writer.on('error', reject)
+            writer.on('finish', resolve)
+            writer.on('error', reject)
         });
 
-        // unzip temp ZIP file to the targetDirectory
-        const zip = new nodeStreamZip.async({ file: tmpZipFile });
-        await zip.extract(null, targetDirectory);
+        core.debug(`The signed artifact ZIP has been saved to ${tmpZipFile}`);
 
-        // delete temp ZIP file
-        fs.unlinkSync(tmpZipFile);
+        try
+        {
+            core.debug(`Extracting the signed artifact from ${tmpZipFile} to ${targetDirectory}`);
+            // unzip temp ZIP file to the targetDirectory
+            const zip = new nodeStreamZip.async({ file: tmpZipFile });
+            await zip.extract(null, targetDirectory);
+            core.debug(`The signed artifact has been extracted to ${targetDirectory}`);
+        }
+        finally {
+
+            core.debug(`Deleting temp directory ${tmpDir}`);
+            // delete the temp DIR
+            fs.unlinkSync(tmpDir);
+        }
 
         core.info(`The signed artifact has been successfully downloaded from SignPath and extracted to ${targetDirectory}`);
     }
@@ -258,7 +274,7 @@ export class Task {
     resolveOrCreateDirectory(relativePath:string): string {
         const absolutePath = path.join(process.env.GITHUB_WORKSPACE as string, relativePath)
         if (!fs.existsSync(absolutePath)) {
-            core.info(`Directory ${absolutePath} does not exist, and will be created`);
+            core.info(`Directory "${absolutePath}" does not exist and will be created`);
             fs.mkdirSync(absolutePath, { recursive: true });
         }
         return absolutePath;

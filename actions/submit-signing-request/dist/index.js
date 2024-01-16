@@ -36205,6 +36205,7 @@ exports.Task = void 0;
 const axios_1 = __importDefault(__nccwpck_require__(948));
 const core = __importStar(__nccwpck_require__(8163));
 const fs = __importStar(__nccwpck_require__(7147));
+const os = __importStar(__nccwpck_require__(2037));
 const path = __importStar(__nccwpck_require__(1017));
 const moment = __importStar(__nccwpck_require__(7393));
 const nodeStreamZip = __importStar(__nccwpck_require__(7175));
@@ -36394,26 +36395,36 @@ class Task {
             });
             const targetDirectory = this.resolveOrCreateDirectory(this.outputArtifactDirectory);
             core.info(`The signed artifact is being downloaded from SignPath and will be saved to ${targetDirectory}`);
+            const tmpDir = fs.mkdtempSync(`${os.tmpdir()}${path.sep}`);
+            core.debug(`Created temp directory ${tmpDir}`);
             // save the signed artifact to temp ZIP file
-            const tmpZipFile = path.join(targetDirectory, '__signpath_signed_artifact_tmp.zip');
+            const tmpZipFile = path.join(tmpDir, 'artifact_tmp.zip');
             const writer = fs.createWriteStream(tmpZipFile);
             response.data.pipe(writer);
             yield new Promise((resolve, reject) => {
                 writer.on('finish', resolve);
                 writer.on('error', reject);
             });
-            // unzip temp ZIP file to the targetDirectory
-            const zip = new nodeStreamZip.async({ file: tmpZipFile });
-            yield zip.extract(null, targetDirectory);
-            // delete temp ZIP file
-            fs.unlinkSync(tmpZipFile);
+            core.debug(`The signed artifact ZIP has been saved to ${tmpZipFile}`);
+            try {
+                core.debug(`Extracting the signed artifact from ${tmpZipFile} to ${targetDirectory}`);
+                // unzip temp ZIP file to the targetDirectory
+                const zip = new nodeStreamZip.async({ file: tmpZipFile });
+                yield zip.extract(null, targetDirectory);
+                core.debug(`The signed artifact has been extracted to ${targetDirectory}`);
+            }
+            finally {
+                core.debug(`Deleting temp directory ${tmpDir}`);
+                // delete the temp DIR
+                fs.unlinkSync(tmpDir);
+            }
             core.info(`The signed artifact has been successfully downloaded from SignPath and extracted to ${targetDirectory}`);
         });
     }
     resolveOrCreateDirectory(relativePath) {
         const absolutePath = path.join(process.env.GITHUB_WORKSPACE, relativePath);
         if (!fs.existsSync(absolutePath)) {
-            core.info(`Directory ${absolutePath} does not exist, and will be created`);
+            core.info(`Directory "${absolutePath}" does not exist and will be created`);
             fs.mkdirSync(absolutePath, { recursive: true });
         }
         return absolutePath;
