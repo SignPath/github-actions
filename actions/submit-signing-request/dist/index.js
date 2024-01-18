@@ -36415,21 +36415,11 @@ class Task {
                 writer.on('error', reject);
             });
             core.debug(`The signed artifact ZIP has been saved to ${tmpZipFile}`);
-            try {
-                core.debug(`Extracting the signed artifact from ${tmpZipFile} to ${targetDirectory}`);
-                // unzip temp ZIP file to the targetDirectory
-                const zip = new nodeStreamZip.async({ file: tmpZipFile });
-                yield zip.extract(null, targetDirectory);
-                core.debug(`The signed artifact has been extracted to ${targetDirectory}`);
-            }
-            finally {
-                core.debug(`Deleting temp directory ${tmpDir}`);
-                core.info(`Deleting temp file ${tmpZipFile}`);
-                fs.unlinkSync(tmpZipFile);
-                core.info(`Deleting temp dir ${tmpDir}`);
-                fs.rmSync(tmpDir, { recursive: true });
-                core.info(`Deleted ${tmpDir}`);
-            }
+            core.debug(`Extracting the signed artifact from ${tmpZipFile} to ${targetDirectory}`);
+            // unzip temp ZIP file to the targetDirectory
+            const zip = new nodeStreamZip.async({ file: tmpZipFile });
+            yield zip.extract(null, targetDirectory);
+            core.debug(`The signed artifact has been extracted to ${targetDirectory}`);
             core.info(`The signed artifact has been successfully downloaded from SignPath and extracted to ${targetDirectory}`);
         });
     }

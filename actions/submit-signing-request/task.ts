@@ -1,7 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import * as core from '@actions/core';
 import * as fs from 'fs';
-import * as os from 'os';
 import * as path from 'path';
 import * as moment from 'moment';
 import * as nodeStreamZip from 'node-stream-zip';
@@ -254,20 +253,11 @@ export class Task {
 
         core.debug(`The signed artifact ZIP has been saved to ${tmpZipFile}`);
 
-        try
-        {
-            core.debug(`Extracting the signed artifact from ${tmpZipFile} to ${targetDirectory}`);
-            // unzip temp ZIP file to the targetDirectory
-            const zip = new nodeStreamZip.async({ file: tmpZipFile });
-            await zip.extract(null, targetDirectory);
-            core.debug(`The signed artifact has been extracted to ${targetDirectory}`);
-        }
-        finally {
-
-            core.debug(`Deleting temp directory ${tmpDir}`);
-            fs.unlinkSync(tmpZipFile);
-            fs.rmSync(tmpDir, { recursive: true });
-        }
+        core.debug(`Extracting the signed artifact from ${tmpZipFile} to ${targetDirectory}`);
+        // unzip temp ZIP file to the targetDirectory
+        const zip = new nodeStreamZip.async({ file: tmpZipFile });
+        await zip.extract(null, targetDirectory);
+        core.debug(`The signed artifact has been extracted to ${targetDirectory}`);
 
         core.info(`The signed artifact has been successfully downloaded from SignPath and extracted to ${targetDirectory}`);
     }
