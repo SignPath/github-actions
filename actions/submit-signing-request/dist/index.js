@@ -36415,7 +36415,7 @@ class Task {
             }
             finally {
                 core.debug(`Deleting temp directory ${tmpDir}`);
-                fs.rmSync(tmpDir, { recursive: true });
+                fs.rmSync(tmpDir, { recursive: true, force: true });
             }
             core.info(`The signed artifact has been successfully downloaded from SignPath and extracted to ${targetDirectory}`);
         });
