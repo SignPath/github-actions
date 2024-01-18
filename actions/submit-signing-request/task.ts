@@ -239,7 +239,8 @@ export class Task {
         core.info(`The signed artifact is being downloaded from SignPath and will be saved to ${targetDirectory}`);
 
 
-        const tmpDir = fs.mkdtempSync(`${os.tmpdir()}${path.sep}`);
+        const rootTmpDir = process.env.RUNNER_TEMP;
+        const tmpDir = fs.mkdtempSync(`${rootTmpDir}${path.sep}`);
         core.debug(`Created temp directory ${tmpDir}`);
 
         // save the signed artifact to temp ZIP file

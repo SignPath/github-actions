@@ -36205,7 +36205,6 @@ exports.Task = void 0;
 const axios_1 = __importDefault(__nccwpck_require__(948));
 const core = __importStar(__nccwpck_require__(8163));
 const fs = __importStar(__nccwpck_require__(7147));
-const os = __importStar(__nccwpck_require__(2037));
 const path = __importStar(__nccwpck_require__(1017));
 const moment = __importStar(__nccwpck_require__(7393));
 const nodeStreamZip = __importStar(__nccwpck_require__(7175));
@@ -36404,7 +36403,8 @@ class Task {
             });
             const targetDirectory = this.resolveOrCreateDirectory(this.outputArtifactDirectory);
             core.info(`The signed artifact is being downloaded from SignPath and will be saved to ${targetDirectory}`);
-            const tmpDir = fs.mkdtempSync(`${os.tmpdir()}${path.sep}`);
+            const rootTmpDir = process.env.RUNNER_TEMP;
+            const tmpDir = fs.mkdtempSync(`${rootTmpDir}${path.sep}`);
             core.debug(`Created temp directory ${tmpDir}`);
             // save the signed artifact to temp ZIP file
             const tmpZipFile = path.join(tmpDir, 'artifact_tmp.zip');
