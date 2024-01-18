@@ -36268,6 +36268,15 @@ class Task {
     get artifactConfigurationSlug() {
         return core.getInput('artifact-configuration-slug', { required: true });
     }
+    get waitForCompletionTimeoutInSeconds() {
+        return (0, utils_1.getInputNumber)('wait-for-completion-timeout-in-seconds', { required: true });
+    }
+    get downloadRequestTimeoutInSeconds() {
+        return (0, utils_1.getInputNumber)('download-request-timeout-in-seconds', { required: true });
+    }
+    get serviceUnavailableTimeoutInSeconds() {
+        return (0, utils_1.getInputNumber)('service-unavailable-timeout-in-seconds', { required: true });
+    }
     submitSigningRequest() {
         return __awaiter(this, void 0, void 0, function* () {
             core.info('Submitting the signing request to SignPath CI connector...');
@@ -36415,8 +36424,11 @@ class Task {
             }
             finally {
                 core.debug(`Deleting temp directory ${tmpDir}`);
+                core.info(`Deleting temp file ${tmpZipFile}`);
                 fs.unlinkSync(tmpZipFile);
+                core.info(`Deleting temp dir ${tmpDir}`);
                 fs.rmSync(tmpDir, { recursive: true });
+                core.info(`Deleted ${tmpDir}`);
             }
             core.info(`The signed artifact has been successfully downloaded from SignPath and extracted to ${targetDirectory}`);
         });
@@ -36473,8 +36485,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.executeWithRetries = void 0;
+exports.getInputNumber = exports.executeWithRetries = void 0;
 const moment = __importStar(__nccwpck_require__(7393));
+const core = __importStar(__nccwpck_require__(8163));
 /// function that retries promise calls with delays
 /// the delays are incremental and are calculated as follows:
 /// 1. start with minDelay
@@ -36504,6 +36517,15 @@ function executeWithRetries(promise, maxTotalWaitingTimeMs, minDelayMs, maxDelay
     });
 }
 exports.executeWithRetries = executeWithRetries;
+function getInputNumber(name, options) {
+    const value = core.getInput(name, options);
+    const result = parseInt(value, 10);
+    if (isNaN(result)) {
+        throw new Error(`Input ${name} is not a number`);
+    }
+    return result;
+}
+exports.getInputNumber = getInputNumber;
 
 
 /***/ }),
