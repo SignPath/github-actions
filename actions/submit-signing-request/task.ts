@@ -237,7 +237,6 @@ export class Task {
 
         core.info(`The signed artifact is being downloaded from SignPath and will be saved to ${targetDirectory}`);
 
-
         const rootTmpDir = process.env.RUNNER_TEMP;
         const tmpDir = fs.mkdtempSync(`${rootTmpDir}${path.sep}`);
         core.debug(`Created temp directory ${tmpDir}`);
@@ -257,8 +256,6 @@ export class Task {
         // unzip temp ZIP file to the targetDirectory
         const zip = new nodeStreamZip.async({ file: tmpZipFile });
         await zip.extract(null, targetDirectory);
-        core.debug(`The signed artifact has been extracted to ${targetDirectory}`);
-
         core.info(`The signed artifact has been successfully downloaded from SignPath and extracted to ${targetDirectory}`);
     }
 
