@@ -264,7 +264,7 @@ export class Task {
         finally {
 
             core.debug(`Deleting temp directory ${tmpDir}`);
-            fs.rmSync(tmpZipFile);
+            fs.unlinkSync(tmpZipFile);
             fs.rmSync(tmpDir, { recursive: true });
         }
 
