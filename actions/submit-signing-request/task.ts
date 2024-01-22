@@ -1,20 +1,20 @@
 import axios, { AxiosError } from 'axios';
+import axiosRetry from 'axios-retry';
 import * as core from '@actions/core';
-import * as fs from 'fs';
-import * as path from 'path';
 import * as moment from 'moment';
-import * as nodeStreamZip from 'node-stream-zip';
 
 
 import url from 'url';
-import { SubmitSigningRequestResult } from './dtos/submit-signing-request-result';
+import { SubmitSigningRequestResult, ValidationResult } from './dtos/submit-signing-request-result';
 import { executeWithRetries } from './utils';
 import { SignPathUrlBuilder } from './signpath-url-builder';
 import { SigningRequestDto } from './dtos/signing-request';
+import { HelperInputOutput } from './helper-input-output';
+import { taskVersion } from './version';
+import { HelperArtifactDownload } from './helper-artifact-download';
 
-const MaxWaitingTimeForSigningRequestCompletionMs = 1000 * 60 * 60;
-const MinDelayBetweenSigningRequestStatusChecksMs = 1000 * 60; // start from 1 min
-const MaxDelayBetweenSigningRequestStatusChecksMs = 1000 * 60 * 20; // check at least every 30 minutes
+const MinDelayBetweenSigningRequestStatusChecksInSeconds = 10; // start from 10 sec
+const MaxDelayBetweenSigningRequestStatusChecksInSeconds = 60 * 20; // check at least every 30 minutes
 
 // output variables
 // signingRequestId - the id of the newly created signing request
@@ -25,20 +25,23 @@ const MaxDelayBetweenSigningRequestStatusChecksMs = 1000 * 60 * 20; // check at 
 export class Task {
     urlBuilder: SignPathUrlBuilder;
 
-    constructor () {
-        this.urlBuilder = new SignPathUrlBuilder(this.signPathConnectorUrl);
+    constructor (
+        private helperInputOutput: HelperInputOutput,
+        private helperArtifactDownload: HelperArtifactDownload) {
+        this.urlBuilder = new SignPathUrlBuilder(this.helperInputOutput.signPathConnectorUrl);
     }
 
     async run() {
+
+        this.configureAxios();
+
         try {
             const signingRequestId = await this.submitSigningRequest();
 
-            if (this.outputArtifactDirectory) {
-                // signed artifacts output path is specified,
-                // so we need to wait for the signing request to be completed
-                // and then download the signed artifact
+            if (this.helperInputOutput.waitForCompletion) {
                 const signingRequest = await this.ensureSigningRequestCompleted(signingRequestId);
-                await this.downloadTheSignedArtifact(signingRequest);
+                this.helperInputOutput.setSignedArtifactDownloadUrl(signingRequest.signedArtifactLink);
+                await this.helperArtifactDownload.downloadArtifact(signingRequest.signedArtifactLink);
             }
         }
         catch (err) {
@@ -46,59 +49,12 @@ export class Task {
         }
     }
 
-    get signPathConnectorUrl(): string {
-        return core.getInput('connector-url', { required: true });
-    }
-
-    get artifactName(): string {
-        return core.getInput('artifact-name', { required: true });
-    }
-
-    get outputArtifactDirectory(): string {
-        return core.getInput('output-artifact-directory', { required: false });
-    }
-
-    get organizationId(): string {
-        return core.getInput('organization-id', { required: true });
-    }
-
-    get signPathToken(): string {
-        return core.getInput('api-token', { required: true });
-    }
-
-    get projectSlug(): string {
-        return core.getInput('project-slug', { required: true });
-    }
-
-    get gitHubToken(): string {
-        return core.getInput('github-token', { required: true });
-    }
-
-    get signingPolicySlug(): string {
-        return core.getInput('signing-policy-slug', { required: true });
-    }
-
-    get artifactConfigurationSlug(): string {
-        return core.getInput('artifact-configuration-slug', { required: true });
-    }
-
     private async submitSigningRequest (): Promise<string> {
 
         core.info('Submitting the signing request to SignPath CI connector...');
 
         // prepare the payload
-        const submitRequestPayload = {
-            apiToken: this.signPathToken,
-            artifactName: this.artifactName,
-            gitHubApiUrl: process.env.GITHUB_API_URL,
-            gitHubWorkflowRunId: process.env.GITHUB_RUN_ID,
-            gitHubRepository: process.env.GITHUB_REPOSITORY,
-            gitHubToken: this.gitHubToken,
-            signPathOrganizationId: this.organizationId,
-            signPathProjectSlug: this.projectSlug,
-            signPathSigningPolicySlug: this.signingPolicySlug,
-            signPathArtifactConfigurationSlug: this.artifactConfigurationSlug
-        };
+        const submitRequestPayload = this.buildSigningRequestPayload();
 
         // call the signPath API to submit the signing request
         const response = (await axios
@@ -106,9 +62,8 @@ export class Task {
             submitRequestPayload,
             { responseType: "json" })
             .catch((e: AxiosError) => {
-                core.error(`SignPath API call error: ${e.message}.`);
                 if(e.response?.data && typeof(e.response.data) === "string") {
-                     throw new Error(e.response.data);
+                    throw new Error(e.response.data);
                 }
                 throw new Error(e.message);
             }))
@@ -119,14 +74,32 @@ export class Task {
             throw new Error(response.error);
         }
 
-        if (response.validationResult && response.validationResult.errors.length > 0) {
+        this.checkResponseStructure(response);
+        this.checkCiSystemValidationResult(response.validationResult);
+
+        const signingRequestUrlObj  = url.parse(response.signingRequestUrl);
+        this.urlBuilder.signPathBaseUrl = signingRequestUrlObj.protocol + '//' + signingRequestUrlObj.host;
+
+        core.info(`SignPath signing request has been successfully submitted`);
+        core.info(`The signing request id is ${response.signingRequestId}`);
+        core.info(`You can view the signing request here: ${response.signingRequestUrl}`);
+
+        this.helperInputOutput.setSigningRequestId(response.signingRequestId);
+        this.helperInputOutput.setSigningRequestWebUrl(response.signingRequestUrl);
+        this.helperInputOutput.setSignPathApiUrl(this.urlBuilder.signPathBaseUrl + '/API');
+
+        return response.signingRequestId;
+    }
+
+    private checkCiSystemValidationResult(validationResult: ValidationResult): void {
+        if (validationResult && validationResult.errors.length > 0) {
 
             // got validation errors from the connector
             core.startGroup('CI system setup validation errors')
 
-            core.error(`[error]Build artifact \"${this.artifactName}\" cannot be signed because of continuous integration system setup validation errors:`);
+            core.error(`[error]Build artifact \"${this.helperInputOutput.githubArtifactName}\" cannot be signed because of continuous integration system setup validation errors:`);
 
-            response.validationResult.errors.forEach(validationError => {
+            validationResult.errors.forEach(validationError => {
                 core.error(`[error]${validationError.error}`);
                 if (validationError.howToFix)
                 {
@@ -138,42 +111,23 @@ export class Task {
 
             throw new Error("CI system validation failed.");
         }
-
-        if (!response.signingRequestId) {
-            // got error from the connector
-            throw new Error(`SignPath signing request was not created. Please make sure that SignPathConnectorUrl is pointing to the SignPath GitHub Actions connector endpoint.`);
-        }
-
-        const signingRequestUrlObj  = url.parse(response.signingRequestUrl);
-        this.urlBuilder.signPathBaseUrl = signingRequestUrlObj.protocol + '//' + signingRequestUrlObj.host;
-
-        core.info(`SignPath signing request has been successfully submitted`);
-        core.info(`The signing request id is ${response.signingRequestId}`);
-        core.info(`You can view the signing request here: ${response.signingRequestUrl}`);
-
-
-        core.setOutput('signing-request-id', response.signingRequestId);
-        core.setOutput('signing-request-web-url', response.signingRequestUrl);
-        core.setOutput('signpath-api-url', this.urlBuilder.signPathBaseUrl + '/API');
-
-        return response.signingRequestId;
     }
 
-    async ensureSigningRequestCompleted(signingRequestId: string): Promise<SigningRequestDto> {
+    private async ensureSigningRequestCompleted(signingRequestId: string): Promise<SigningRequestDto> {
         // check for status update
         core.info(`Checking the signing request status...`);
         const requestData = await (executeWithRetries<SigningRequestDto>(
             async () => {
                 const requestStatusUrl = this.urlBuilder.buildGetSigningRequestUrl(
-                    this.organizationId,
-                    signingRequestId);
+                    this.helperInputOutput.organizationId, signingRequestId);
+
                 const signingRequestDto = (await axios
                     .get<SigningRequestDto>(
                         requestStatusUrl,
                         {
                             responseType: "json",
                             headers: {
-                                "Authorization": `Bearer ${this.signPathToken}`
+                                "Authorization": `Bearer ${this.helperInputOutput.signPathApiToken}`
                             }
                         }
                     )
@@ -198,9 +152,9 @@ export class Task {
                     }));
                 return signingRequestDto;
             },
-            MaxWaitingTimeForSigningRequestCompletionMs,
-            MinDelayBetweenSigningRequestStatusChecksMs,
-            MaxDelayBetweenSigningRequestStatusChecksMs)
+            this.helperInputOutput.waitForCompletionTimeoutInSeconds * 1000,
+            MinDelayBetweenSigningRequestStatusChecksInSeconds * 1000,
+            MaxDelayBetweenSigningRequestStatusChecksInSeconds * 1000)
             .catch((e) => {
                 if(e.message.startsWith('{')) {
                     const errorData = JSON.parse(e.message);
@@ -211,7 +165,7 @@ export class Task {
 
         core.info(`Signing request status is ${requestData.status}`);
         if (!requestData.isFinalStatus) {
-            const maxWaitingTime = moment.utc(MaxWaitingTimeForSigningRequestCompletionMs).format("hh:mm");
+            const maxWaitingTime = moment.utc(this.helperInputOutput.waitForCompletionTimeoutInSeconds * 1000).format("hh:mm");
             core.error(`We have exceeded the maximum waiting time, which is ${maxWaitingTime}, and the signing request is still not in a final state`);
             throw new Error(`The signing request is not completed. The current status is "${requestData.status}`);
         } else {
@@ -223,48 +177,51 @@ export class Task {
         return requestData;
     }
 
-    async downloadTheSignedArtifact(signingRequest: SigningRequestDto): Promise<void> {
-        core.setOutput('signed-artifact-download-url', signingRequest.signedArtifactLink);
-        core.info(`Signed artifact url ${signingRequest.signedArtifactLink}`);
-        const response = await axios.get(signingRequest.signedArtifactLink, {
-            responseType: 'stream',
-            headers: {
-                Authorization: 'Bearer ' + this.signPathToken
-            }
+    private configureAxios(): void {
+        // set retries
+        // the delays are powers of 2 in seconds, with 20% jitter
+        // we want to cover 10 minutes of SignPath service unavailability
+        // so we need to do 10 retries
+        // sum of 2^0 + 2^1 + ... + 2^9 = 1023 = 17 minutes
+        // nine retries will not be enough to cover 10 minutes downtime
+
+        const maxRetryCount = 10;
+        axiosRetry(axios, {
+            retryDelay: axiosRetry.exponentialDelay,
+            retries: maxRetryCount
         });
 
-        const targetDirectory = this.resolveOrCreateDirectory(this.outputArtifactDirectory);
-
-        core.info(`The signed artifact is being downloaded from SignPath and will be saved to ${targetDirectory}`);
-
-        const rootTmpDir = process.env.RUNNER_TEMP;
-        const tmpDir = fs.mkdtempSync(`${rootTmpDir}${path.sep}`);
-        core.debug(`Created temp directory ${tmpDir}`);
-
-        // save the signed artifact to temp ZIP file
-        const tmpZipFile = path.join(tmpDir, 'artifact_tmp.zip');
-        const writer = fs.createWriteStream(tmpZipFile);
-        response.data.pipe(writer);
-        await new Promise((resolve, reject) => {
-            writer.on('finish', resolve)
-            writer.on('error', reject)
-        });
-
-        core.debug(`The signed artifact ZIP has been saved to ${tmpZipFile}`);
-
-        core.debug(`Extracting the signed artifact from ${tmpZipFile} to ${targetDirectory}`);
-        // unzip temp ZIP file to the targetDirectory
-        const zip = new nodeStreamZip.async({ file: tmpZipFile });
-        await zip.extract(null, targetDirectory);
-        core.info(`The signed artifact has been successfully downloaded from SignPath and extracted to ${targetDirectory}`);
+        // set user agent
+        axios.defaults.headers.common['User-Agent'] = this.buildUserAgent();
     }
 
-    resolveOrCreateDirectory(relativePath:string): string {
-        const absolutePath = path.join(process.env.GITHUB_WORKSPACE as string, relativePath)
-        if (!fs.existsSync(absolutePath)) {
-            core.info(`Directory "${absolutePath}" does not exist and will be created`);
-            fs.mkdirSync(absolutePath, { recursive: true });
+    private buildUserAgent(): string {
+        const userAgent = `SignPath.SubmitSigningRequestGitHubAction/${taskVersion}(NodeJS/${process.version}; ${process.platform} ${process.arch}})`;
+        return userAgent;
+    }
+
+    private checkResponseStructure(response: SubmitSigningRequestResult): void {
+        if (!response.validationResult && !response.signingRequestId) {
+
+            // if neither validationResult nor signingRequestId are present,
+            // then the response might be not from the connector
+            throw new Error(`SignPath signing request was not created. Please make sure that connector-url is pointing to the SignPath GitHub Actions connector endpoint.`);
         }
-        return absolutePath;
+    }
+
+    private buildSigningRequestPayload(): any {
+        return {
+            apiToken: this.helperInputOutput.signPathApiToken,
+            artifactName: this.helperInputOutput.githubArtifactName,
+            gitHubApiUrl: process.env.GITHUB_API_URL,
+            gitHubWorkflowRunId: process.env.GITHUB_RUN_ID,
+            gitHubRepository: process.env.GITHUB_REPOSITORY,
+            gitHubToken: this.helperInputOutput.gitHubToken,
+            signPathOrganizationId: this.helperInputOutput.organizationId,
+            signPathProjectSlug: this.helperInputOutput.projectSlug,
+            signPathSigningPolicySlug: this.helperInputOutput.signingPolicySlug,
+            signPathArtifactConfigurationSlug: this.helperInputOutput.artifactConfigurationSlug
+        };
     }
 }
+

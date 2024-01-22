@@ -1,6 +1,192 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 2198:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.HelperArtifactDownload = void 0;
+const core = __importStar(__nccwpck_require__(8163));
+const fs = __importStar(__nccwpck_require__(7147));
+const path = __importStar(__nccwpck_require__(1017));
+const nodeStreamZip = __importStar(__nccwpck_require__(7175));
+const axios_1 = __importDefault(__nccwpck_require__(948));
+class HelperArtifactDownload {
+    constructor(helperInputOutput) {
+        this.helperInputOutput = helperInputOutput;
+    }
+    downloadArtifact(artifactDownloadUrl) {
+        return __awaiter(this, void 0, void 0, function* () {
+            core.info(`Signed artifact url ${artifactDownloadUrl}`);
+            const response = yield axios_1.default.get(artifactDownloadUrl, {
+                responseType: 'stream',
+                timeout: this.helperInputOutput.downloadSignedArtifactTimeoutInSeconds * 1000,
+                headers: {
+                    Authorization: 'Bearer ' + this.helperInputOutput.signPathApiToken
+                }
+            });
+            const targetDirectory = this.resolveOrCreateDirectory(this.helperInputOutput.outputArtifactDirectory);
+            core.info(`The signed artifact is being downloaded from SignPath and will be saved to ${targetDirectory}`);
+            const rootTmpDir = process.env.RUNNER_TEMP;
+            const tmpDir = fs.mkdtempSync(`${rootTmpDir}${path.sep}`);
+            core.debug(`Created temp directory ${tmpDir}`);
+            // save the signed artifact to temp ZIP file
+            const tmpZipFile = path.join(tmpDir, 'artifact_tmp.zip');
+            const writer = fs.createWriteStream(tmpZipFile);
+            response.data.pipe(writer);
+            yield new Promise((resolve, reject) => {
+                writer.on('finish', resolve);
+                writer.on('error', reject);
+            });
+            core.debug(`The signed artifact ZIP has been saved to ${tmpZipFile}`);
+            core.debug(`Extracting the signed artifact from ${tmpZipFile} to ${targetDirectory}`);
+            // unzip temp ZIP file to the targetDirectory
+            const zip = new nodeStreamZip.async({ file: tmpZipFile });
+            yield zip.extract(null, targetDirectory);
+            core.info(`The signed artifact has been successfully downloaded from SignPath and extracted to ${targetDirectory}`);
+        });
+    }
+    resolveOrCreateDirectory(relativePath) {
+        const absolutePath = path.join(process.env.GITHUB_WORKSPACE, relativePath);
+        if (!fs.existsSync(absolutePath)) {
+            core.info(`Directory "${absolutePath}" does not exist and will be created`);
+            fs.mkdirSync(absolutePath, { recursive: true });
+        }
+        return absolutePath;
+    }
+}
+exports.HelperArtifactDownload = HelperArtifactDownload;
+
+
+/***/ }),
+
+/***/ 7363:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.HelperInputOutput = void 0;
+const core = __importStar(__nccwpck_require__(8163));
+const utils_1 = __nccwpck_require__(9586);
+class HelperInputOutput {
+    get signPathConnectorUrl() {
+        return core.getInput('connector-url', { required: true });
+    }
+    get githubArtifactName() {
+        return core.getInput('github-artifact-name', { required: true });
+    }
+    get outputArtifactDirectory() {
+        return core.getInput('output-artifact-directory', { required: this.waitForCompletion });
+    }
+    get waitForCompletion() {
+        return core.getInput('wait-for-completion', { required: true }) === 'true';
+    }
+    get organizationId() {
+        return core.getInput('organization-id', { required: true });
+    }
+    get signPathApiToken() {
+        return core.getInput('api-token', { required: true });
+    }
+    get projectSlug() {
+        return core.getInput('project-slug', { required: true });
+    }
+    get gitHubToken() {
+        return core.getInput('github-token', { required: true });
+    }
+    get signingPolicySlug() {
+        return core.getInput('signing-policy-slug', { required: true });
+    }
+    get artifactConfigurationSlug() {
+        return core.getInput('artifact-configuration-slug', { required: true });
+    }
+    get waitForCompletionTimeoutInSeconds() {
+        return (0, utils_1.getInputNumber)('wait-for-completion-timeout-in-seconds', { required: true });
+    }
+    get downloadSignedArtifactTimeoutInSeconds() {
+        return (0, utils_1.getInputNumber)('download-signed-artifact-timeout-in-seconds', { required: true });
+    }
+    get serviceUnavailableTimeoutInSeconds() {
+        return (0, utils_1.getInputNumber)('service-unavailable-timeout-in-seconds', { required: true });
+    }
+    setSignedArtifactDownloadUrl(url) {
+        core.setOutput('signed-artifact-download-url', url);
+    }
+    setSigningRequestId(signingRequestId) {
+        core.setOutput('signing-request-id', signingRequestId);
+    }
+    setSigningRequestWebUrl(signingRequestUrl) {
+        core.setOutput('signing-request-web-url', signingRequestUrl);
+    }
+    setSignPathApiUrl(signingRequestUrl) {
+        core.setOutput('signpath-api-url', signingRequestUrl);
+    }
+}
+exports.HelperInputOutput = HelperInputOutput;
+
+
+/***/ }),
+
 /***/ 7625:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -6584,6 +6770,53 @@ module.exports = function(dst, src) {
 
   return dst;
 };
+
+
+/***/ }),
+
+/***/ 7809:
+/***/ ((module) => {
+
+"use strict";
+
+
+const denyList = new Set([
+	'ENOTFOUND',
+	'ENETUNREACH',
+
+	// SSL errors from https://github.com/nodejs/node/blob/fc8e3e2cdc521978351de257030db0076d79e0ab/src/crypto/crypto_common.cc#L301-L328
+	'UNABLE_TO_GET_ISSUER_CERT',
+	'UNABLE_TO_GET_CRL',
+	'UNABLE_TO_DECRYPT_CERT_SIGNATURE',
+	'UNABLE_TO_DECRYPT_CRL_SIGNATURE',
+	'UNABLE_TO_DECODE_ISSUER_PUBLIC_KEY',
+	'CERT_SIGNATURE_FAILURE',
+	'CRL_SIGNATURE_FAILURE',
+	'CERT_NOT_YET_VALID',
+	'CERT_HAS_EXPIRED',
+	'CRL_NOT_YET_VALID',
+	'CRL_HAS_EXPIRED',
+	'ERROR_IN_CERT_NOT_BEFORE_FIELD',
+	'ERROR_IN_CERT_NOT_AFTER_FIELD',
+	'ERROR_IN_CRL_LAST_UPDATE_FIELD',
+	'ERROR_IN_CRL_NEXT_UPDATE_FIELD',
+	'OUT_OF_MEM',
+	'DEPTH_ZERO_SELF_SIGNED_CERT',
+	'SELF_SIGNED_CERT_IN_CHAIN',
+	'UNABLE_TO_GET_ISSUER_CERT_LOCALLY',
+	'UNABLE_TO_VERIFY_LEAF_SIGNATURE',
+	'CERT_CHAIN_TOO_LONG',
+	'CERT_REVOKED',
+	'INVALID_CA',
+	'PATH_LENGTH_EXCEEDED',
+	'INVALID_PURPOSE',
+	'CERT_UNTRUSTED',
+	'CERT_REJECTED',
+	'HOSTNAME_MISMATCH'
+]);
+
+// TODO: Use `error?.code` when targeting Node.js 14
+module.exports = error => !denyList.has(error && error.code);
 
 
 /***/ }),
@@ -36203,36 +36436,35 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Task = void 0;
 const axios_1 = __importDefault(__nccwpck_require__(948));
+const axios_retry_1 = __importDefault(__nccwpck_require__(3434));
 const core = __importStar(__nccwpck_require__(8163));
-const fs = __importStar(__nccwpck_require__(7147));
-const path = __importStar(__nccwpck_require__(1017));
 const moment = __importStar(__nccwpck_require__(7393));
-const nodeStreamZip = __importStar(__nccwpck_require__(7175));
 const url_1 = __importDefault(__nccwpck_require__(7310));
 const utils_1 = __nccwpck_require__(9586);
 const signpath_url_builder_1 = __nccwpck_require__(2139);
-const MaxWaitingTimeForSigningRequestCompletionMs = 1000 * 60 * 60;
-const MinDelayBetweenSigningRequestStatusChecksMs = 1000 * 60; // start from 1 min
-const MaxDelayBetweenSigningRequestStatusChecksMs = 1000 * 60 * 20; // check at least every 30 minutes
+const version_1 = __nccwpck_require__(2398);
+const MinDelayBetweenSigningRequestStatusChecksInSeconds = 10; // start from 10 sec
+const MaxDelayBetweenSigningRequestStatusChecksInSeconds = 60 * 20; // check at least every 30 minutes
 // output variables
 // signingRequestId - the id of the newly created signing request
 // signingRequestWebUrl - the url of the signing request in SignPath
 // signPathApiUrl - the base API url of the SignPath API
 // signingRequestDownloadUrl - the url of the signed artifact in SignPath
 class Task {
-    constructor() {
-        this.urlBuilder = new signpath_url_builder_1.SignPathUrlBuilder(this.signPathConnectorUrl);
+    constructor(helperInputOutput, helperArtifactDownload) {
+        this.helperInputOutput = helperInputOutput;
+        this.helperArtifactDownload = helperArtifactDownload;
+        this.urlBuilder = new signpath_url_builder_1.SignPathUrlBuilder(this.helperInputOutput.signPathConnectorUrl);
     }
     run() {
         return __awaiter(this, void 0, void 0, function* () {
+            this.configureAxios();
             try {
                 const signingRequestId = yield this.submitSigningRequest();
-                if (this.outputArtifactDirectory) {
-                    // signed artifacts output path is specified,
-                    // so we need to wait for the signing request to be completed
-                    // and then download the signed artifact
+                if (this.helperInputOutput.waitForCompletion) {
                     const signingRequest = yield this.ensureSigningRequestCompleted(signingRequestId);
-                    yield this.downloadTheSignedArtifact(signingRequest);
+                    this.helperInputOutput.setSignedArtifactDownloadUrl(signingRequest.signedArtifactLink);
+                    yield this.helperArtifactDownload.downloadArtifact(signingRequest.signedArtifactLink);
                 }
             }
             catch (err) {
@@ -36240,55 +36472,16 @@ class Task {
             }
         });
     }
-    get signPathConnectorUrl() {
-        return core.getInput('connector-url', { required: true });
-    }
-    get artifactName() {
-        return core.getInput('artifact-name', { required: true });
-    }
-    get outputArtifactDirectory() {
-        return core.getInput('output-artifact-directory', { required: false });
-    }
-    get organizationId() {
-        return core.getInput('organization-id', { required: true });
-    }
-    get signPathToken() {
-        return core.getInput('api-token', { required: true });
-    }
-    get projectSlug() {
-        return core.getInput('project-slug', { required: true });
-    }
-    get gitHubToken() {
-        return core.getInput('github-token', { required: true });
-    }
-    get signingPolicySlug() {
-        return core.getInput('signing-policy-slug', { required: true });
-    }
-    get artifactConfigurationSlug() {
-        return core.getInput('artifact-configuration-slug', { required: true });
-    }
     submitSigningRequest() {
         return __awaiter(this, void 0, void 0, function* () {
             core.info('Submitting the signing request to SignPath CI connector...');
             // prepare the payload
-            const submitRequestPayload = {
-                apiToken: this.signPathToken,
-                artifactName: this.artifactName,
-                gitHubApiUrl: process.env.GITHUB_API_URL,
-                gitHubWorkflowRunId: process.env.GITHUB_RUN_ID,
-                gitHubRepository: process.env.GITHUB_REPOSITORY,
-                gitHubToken: this.gitHubToken,
-                signPathOrganizationId: this.organizationId,
-                signPathProjectSlug: this.projectSlug,
-                signPathSigningPolicySlug: this.signingPolicySlug,
-                signPathArtifactConfigurationSlug: this.artifactConfigurationSlug
-            };
+            const submitRequestPayload = this.buildSigningRequestPayload();
             // call the signPath API to submit the signing request
             const response = (yield axios_1.default
                 .post(this.urlBuilder.buildSubmitSigningRequestUrl(), submitRequestPayload, { responseType: "json" })
                 .catch((e) => {
                 var _a;
-                core.error(`SignPath API call error: ${e.message}.`);
                 if (((_a = e.response) === null || _a === void 0 ? void 0 : _a.data) && typeof (e.response.data) === "string") {
                     throw new Error(e.response.data);
                 }
@@ -36299,45 +36492,45 @@ class Task {
                 // got error from the connector
                 throw new Error(response.error);
             }
-            if (response.validationResult && response.validationResult.errors.length > 0) {
-                // got validation errors from the connector
-                core.startGroup('CI system setup validation errors');
-                core.error(`[error]Build artifact \"${this.artifactName}\" cannot be signed because of continuous integration system setup validation errors:`);
-                response.validationResult.errors.forEach(validationError => {
-                    core.error(`[error]${validationError.error}`);
-                    if (validationError.howToFix) {
-                        core.info(validationError.howToFix);
-                    }
-                });
-                core.endGroup();
-                throw new Error("CI system validation failed.");
-            }
-            if (!response.signingRequestId) {
-                // got error from the connector
-                throw new Error(`SignPath signing request was not created. Please make sure that SignPathConnectorUrl is pointing to the SignPath GitHub Actions connector endpoint.`);
-            }
+            this.checkResponseStructure(response);
+            this.checkCiSystemValidationResult(response.validationResult);
             const signingRequestUrlObj = url_1.default.parse(response.signingRequestUrl);
             this.urlBuilder.signPathBaseUrl = signingRequestUrlObj.protocol + '//' + signingRequestUrlObj.host;
             core.info(`SignPath signing request has been successfully submitted`);
             core.info(`The signing request id is ${response.signingRequestId}`);
             core.info(`You can view the signing request here: ${response.signingRequestUrl}`);
-            core.setOutput('signing-request-id', response.signingRequestId);
-            core.setOutput('signing-request-web-url', response.signingRequestUrl);
-            core.setOutput('signpath-api-url', this.urlBuilder.signPathBaseUrl + '/API');
+            this.helperInputOutput.setSigningRequestId(response.signingRequestId);
+            this.helperInputOutput.setSigningRequestWebUrl(response.signingRequestUrl);
+            this.helperInputOutput.setSignPathApiUrl(this.urlBuilder.signPathBaseUrl + '/API');
             return response.signingRequestId;
         });
+    }
+    checkCiSystemValidationResult(validationResult) {
+        if (validationResult && validationResult.errors.length > 0) {
+            // got validation errors from the connector
+            core.startGroup('CI system setup validation errors');
+            core.error(`[error]Build artifact \"${this.helperInputOutput.githubArtifactName}\" cannot be signed because of continuous integration system setup validation errors:`);
+            validationResult.errors.forEach(validationError => {
+                core.error(`[error]${validationError.error}`);
+                if (validationError.howToFix) {
+                    core.info(validationError.howToFix);
+                }
+            });
+            core.endGroup();
+            throw new Error("CI system validation failed.");
+        }
     }
     ensureSigningRequestCompleted(signingRequestId) {
         return __awaiter(this, void 0, void 0, function* () {
             // check for status update
             core.info(`Checking the signing request status...`);
             const requestData = yield ((0, utils_1.executeWithRetries)(() => __awaiter(this, void 0, void 0, function* () {
-                const requestStatusUrl = this.urlBuilder.buildGetSigningRequestUrl(this.organizationId, signingRequestId);
+                const requestStatusUrl = this.urlBuilder.buildGetSigningRequestUrl(this.helperInputOutput.organizationId, signingRequestId);
                 const signingRequestDto = (yield axios_1.default
                     .get(requestStatusUrl, {
                     responseType: "json",
                     headers: {
-                        "Authorization": `Bearer ${this.signPathToken}`
+                        "Authorization": `Bearer ${this.helperInputOutput.signPathApiToken}`
                     }
                 })
                     .catch((e) => {
@@ -36360,7 +36553,7 @@ class Task {
                     return data;
                 }));
                 return signingRequestDto;
-            }), MaxWaitingTimeForSigningRequestCompletionMs, MinDelayBetweenSigningRequestStatusChecksMs, MaxDelayBetweenSigningRequestStatusChecksMs)
+            }), this.helperInputOutput.waitForCompletionTimeoutInSeconds * 1000, MinDelayBetweenSigningRequestStatusChecksInSeconds * 1000, MaxDelayBetweenSigningRequestStatusChecksInSeconds * 1000)
                 .catch((e) => {
                 if (e.message.startsWith('{')) {
                     const errorData = JSON.parse(e.message);
@@ -36370,7 +36563,7 @@ class Task {
             }));
             core.info(`Signing request status is ${requestData.status}`);
             if (!requestData.isFinalStatus) {
-                const maxWaitingTime = moment.utc(MaxWaitingTimeForSigningRequestCompletionMs).format("hh:mm");
+                const maxWaitingTime = moment.utc(this.helperInputOutput.waitForCompletionTimeoutInSeconds * 1000).format("hh:mm");
                 core.error(`We have exceeded the maximum waiting time, which is ${maxWaitingTime}, and the signing request is still not in a final state`);
                 throw new Error(`The signing request is not completed. The current status is "${requestData.status}`);
             }
@@ -36382,44 +36575,45 @@ class Task {
             return requestData;
         });
     }
-    downloadTheSignedArtifact(signingRequest) {
-        return __awaiter(this, void 0, void 0, function* () {
-            core.setOutput('signed-artifact-download-url', signingRequest.signedArtifactLink);
-            core.info(`Signed artifact url ${signingRequest.signedArtifactLink}`);
-            const response = yield axios_1.default.get(signingRequest.signedArtifactLink, {
-                responseType: 'stream',
-                headers: {
-                    Authorization: 'Bearer ' + this.signPathToken
-                }
-            });
-            const targetDirectory = this.resolveOrCreateDirectory(this.outputArtifactDirectory);
-            core.info(`The signed artifact is being downloaded from SignPath and will be saved to ${targetDirectory}`);
-            const rootTmpDir = process.env.RUNNER_TEMP;
-            const tmpDir = fs.mkdtempSync(`${rootTmpDir}${path.sep}`);
-            core.debug(`Created temp directory ${tmpDir}`);
-            // save the signed artifact to temp ZIP file
-            const tmpZipFile = path.join(tmpDir, 'artifact_tmp.zip');
-            const writer = fs.createWriteStream(tmpZipFile);
-            response.data.pipe(writer);
-            yield new Promise((resolve, reject) => {
-                writer.on('finish', resolve);
-                writer.on('error', reject);
-            });
-            core.debug(`The signed artifact ZIP has been saved to ${tmpZipFile}`);
-            core.debug(`Extracting the signed artifact from ${tmpZipFile} to ${targetDirectory}`);
-            // unzip temp ZIP file to the targetDirectory
-            const zip = new nodeStreamZip.async({ file: tmpZipFile });
-            yield zip.extract(null, targetDirectory);
-            core.info(`The signed artifact has been successfully downloaded from SignPath and extracted to ${targetDirectory}`);
+    configureAxios() {
+        // set retries
+        // the delays are powers of 2 in seconds, with 20% jitter
+        // we want to cover 10 minutes of SignPath service unavailability
+        // so we need to do 10 retries
+        // sum of 2^0 + 2^1 + ... + 2^9 = 1023 = 17 minutes
+        // nine retries will not be enough to cover 10 minutes downtime
+        const maxRetryCount = 10;
+        (0, axios_retry_1.default)(axios_1.default, {
+            retryDelay: axios_retry_1.default.exponentialDelay,
+            retries: maxRetryCount
         });
+        // set user agent
+        axios_1.default.defaults.headers.common['User-Agent'] = this.buildUserAgent();
     }
-    resolveOrCreateDirectory(relativePath) {
-        const absolutePath = path.join(process.env.GITHUB_WORKSPACE, relativePath);
-        if (!fs.existsSync(absolutePath)) {
-            core.info(`Directory "${absolutePath}" does not exist and will be created`);
-            fs.mkdirSync(absolutePath, { recursive: true });
+    buildUserAgent() {
+        const userAgent = `SignPath.SubmitSigningRequestGitHubAction/${version_1.taskVersion}(NodeJS/${process.version}; ${process.platform} ${process.arch}})`;
+        return userAgent;
+    }
+    checkResponseStructure(response) {
+        if (!response.validationResult && !response.signingRequestId) {
+            // if neither validationResult nor signingRequestId are present,
+            // then the response might be not from the connector
+            throw new Error(`SignPath signing request was not created. Please make sure that connector-url is pointing to the SignPath GitHub Actions connector endpoint.`);
         }
-        return absolutePath;
+    }
+    buildSigningRequestPayload() {
+        return {
+            apiToken: this.helperInputOutput.signPathApiToken,
+            artifactName: this.helperInputOutput.githubArtifactName,
+            gitHubApiUrl: process.env.GITHUB_API_URL,
+            gitHubWorkflowRunId: process.env.GITHUB_RUN_ID,
+            gitHubRepository: process.env.GITHUB_REPOSITORY,
+            gitHubToken: this.helperInputOutput.gitHubToken,
+            signPathOrganizationId: this.helperInputOutput.organizationId,
+            signPathProjectSlug: this.helperInputOutput.projectSlug,
+            signPathSigningPolicySlug: this.helperInputOutput.signingPolicySlug,
+            signPathArtifactConfigurationSlug: this.helperInputOutput.artifactConfigurationSlug
+        };
     }
 }
 exports.Task = Task;
@@ -36465,8 +36659,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.executeWithRetries = void 0;
+exports.getInputNumber = exports.executeWithRetries = void 0;
 const moment = __importStar(__nccwpck_require__(7393));
+const core = __importStar(__nccwpck_require__(8163));
 /// function that retries promise calls with delays
 /// the delays are incremental and are calculated as follows:
 /// 1. start with minDelay
@@ -36496,6 +36691,28 @@ function executeWithRetries(promise, maxTotalWaitingTimeMs, minDelayMs, maxDelay
     });
 }
 exports.executeWithRetries = executeWithRetries;
+function getInputNumber(name, options) {
+    const value = core.getInput(name, options);
+    const result = parseInt(value, 10);
+    if (isNaN(result)) {
+        throw new Error(`Input ${name} is not a number`);
+    }
+    return result;
+}
+exports.getInputNumber = getInputNumber;
+
+
+/***/ }),
+
+/***/ 2398:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.taskVersion = void 0;
+const taskVersion = '0.1';
+exports.taskVersion = taskVersion;
 
 
 /***/ }),
@@ -39540,6 +39757,178 @@ module.exports = parseParams
 
 /***/ }),
 
+/***/ 3434:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.DEFAULT_OPTIONS = exports.exponentialDelay = exports.isNetworkOrIdempotentRequestError = exports.isIdempotentRequestError = exports.isSafeRequestError = exports.isRetryableError = exports.isNetworkError = exports.namespace = void 0;
+const is_retry_allowed_1 = __importDefault(__nccwpck_require__(7809));
+exports.namespace = 'axios-retry';
+function isNetworkError(error) {
+    const CODE_EXCLUDE_LIST = ['ERR_CANCELED', 'ECONNABORTED'];
+    if (error.response) {
+        return false;
+    }
+    if (!error.code) {
+        return false;
+    }
+    // Prevents retrying timed out & cancelled requests
+    if (CODE_EXCLUDE_LIST.includes(error.code)) {
+        return false;
+    }
+    // Prevents retrying unsafe errors
+    return (0, is_retry_allowed_1.default)(error);
+}
+exports.isNetworkError = isNetworkError;
+const SAFE_HTTP_METHODS = ['get', 'head', 'options'];
+const IDEMPOTENT_HTTP_METHODS = SAFE_HTTP_METHODS.concat(['put', 'delete']);
+function isRetryableError(error) {
+    return (error.code !== 'ECONNABORTED' &&
+        (!error.response || (error.response.status >= 500 && error.response.status <= 599)));
+}
+exports.isRetryableError = isRetryableError;
+function isSafeRequestError(error) {
+    var _a;
+    if (!((_a = error.config) === null || _a === void 0 ? void 0 : _a.method)) {
+        // Cannot determine if the request can be retried
+        return false;
+    }
+    return isRetryableError(error) && SAFE_HTTP_METHODS.indexOf(error.config.method) !== -1;
+}
+exports.isSafeRequestError = isSafeRequestError;
+function isIdempotentRequestError(error) {
+    var _a;
+    if (!((_a = error.config) === null || _a === void 0 ? void 0 : _a.method)) {
+        // Cannot determine if the request can be retried
+        return false;
+    }
+    return isRetryableError(error) && IDEMPOTENT_HTTP_METHODS.indexOf(error.config.method) !== -1;
+}
+exports.isIdempotentRequestError = isIdempotentRequestError;
+function isNetworkOrIdempotentRequestError(error) {
+    return isNetworkError(error) || isIdempotentRequestError(error);
+}
+exports.isNetworkOrIdempotentRequestError = isNetworkOrIdempotentRequestError;
+function noDelay() {
+    return 0;
+}
+function exponentialDelay(retryNumber = 0, _error = undefined, delayFactor = 100) {
+    const delay = Math.pow(2, retryNumber) * delayFactor;
+    const randomSum = delay * 0.2 * Math.random(); // 0-20% of the delay
+    return delay + randomSum;
+}
+exports.exponentialDelay = exponentialDelay;
+exports.DEFAULT_OPTIONS = {
+    retries: 3,
+    retryCondition: isNetworkOrIdempotentRequestError,
+    retryDelay: noDelay,
+    shouldResetTimeout: false,
+    onRetry: () => { }
+};
+function getRequestOptions(config, defaultOptions) {
+    return Object.assign(Object.assign(Object.assign({}, exports.DEFAULT_OPTIONS), defaultOptions), config[exports.namespace]);
+}
+function setCurrentState(config, defaultOptions) {
+    const currentState = getRequestOptions(config, defaultOptions || {});
+    currentState.retryCount = currentState.retryCount || 0;
+    currentState.lastRequestTime = currentState.lastRequestTime || Date.now();
+    config[exports.namespace] = currentState;
+    return currentState;
+}
+function fixConfig(axiosInstance, config) {
+    // @ts-ignore
+    if (axiosInstance.defaults.agent === config.agent) {
+        // @ts-ignore
+        delete config.agent;
+    }
+    if (axiosInstance.defaults.httpAgent === config.httpAgent) {
+        delete config.httpAgent;
+    }
+    if (axiosInstance.defaults.httpsAgent === config.httpsAgent) {
+        delete config.httpsAgent;
+    }
+}
+function shouldRetry(currentState, error) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { retries, retryCondition } = currentState;
+        const shouldRetryOrPromise = (currentState.retryCount || 0) < retries && retryCondition(error);
+        // This could be a promise
+        if (typeof shouldRetryOrPromise === 'object') {
+            try {
+                const shouldRetryPromiseResult = yield shouldRetryOrPromise;
+                // keep return true unless shouldRetryPromiseResult return false for compatibility
+                return shouldRetryPromiseResult !== false;
+            }
+            catch (_err) {
+                return false;
+            }
+        }
+        return shouldRetryOrPromise;
+    });
+}
+const axiosRetry = (axiosInstance, defaultOptions) => {
+    const requestInterceptorId = axiosInstance.interceptors.request.use((config) => {
+        setCurrentState(config, defaultOptions);
+        return config;
+    });
+    const responseInterceptorId = axiosInstance.interceptors.response.use(null, (error) => __awaiter(void 0, void 0, void 0, function* () {
+        const { config } = error;
+        // If we have no information to retry the request
+        if (!config) {
+            return Promise.reject(error);
+        }
+        const currentState = setCurrentState(config, defaultOptions);
+        if (yield shouldRetry(currentState, error)) {
+            currentState.retryCount += 1;
+            const { retryDelay, shouldResetTimeout, onRetry } = currentState;
+            const delay = retryDelay(currentState.retryCount, error);
+            // Axios fails merging this configuration to the default configuration because it has an issue
+            // with circular structures: https://github.com/mzabriskie/axios/issues/370
+            fixConfig(axiosInstance, config);
+            if (!shouldResetTimeout && config.timeout && currentState.lastRequestTime) {
+                const lastRequestDuration = Date.now() - currentState.lastRequestTime;
+                const timeout = config.timeout - lastRequestDuration - delay;
+                if (timeout <= 0) {
+                    return Promise.reject(error);
+                }
+                config.timeout = timeout;
+            }
+            config.transformRequest = [(data) => data];
+            yield onRetry(currentState.retryCount, error, config);
+            return new Promise((resolve) => {
+                setTimeout(() => resolve(axiosInstance(config)), delay);
+            });
+        }
+        return Promise.reject(error);
+    }));
+    return { requestInterceptorId, responseInterceptorId };
+};
+// Compatibility with CommonJS
+axiosRetry.isNetworkError = isNetworkError;
+axiosRetry.isSafeRequestError = isSafeRequestError;
+axiosRetry.isIdempotentRequestError = isIdempotentRequestError;
+axiosRetry.isNetworkOrIdempotentRequestError = isNetworkOrIdempotentRequestError;
+axiosRetry.exponentialDelay = exponentialDelay;
+axiosRetry.isRetryableError = isRetryableError;
+exports["default"] = axiosRetry;
+
+
+/***/ }),
+
 /***/ 3765:
 /***/ ((module) => {
 
@@ -39606,7 +39995,11 @@ var exports = __webpack_exports__;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const task_1 = __nccwpck_require__(4661);
-const task = new task_1.Task();
+const helper_artifact_download_1 = __nccwpck_require__(2198);
+const helper_input_output_1 = __nccwpck_require__(7363);
+const helperInputOutput = new helper_input_output_1.HelperInputOutput();
+const helperArtifactDownload = new helper_artifact_download_1.HelperArtifactDownload(helperInputOutput);
+const task = new task_1.Task(helperInputOutput, helperArtifactDownload);
 task.run();
 
 })();

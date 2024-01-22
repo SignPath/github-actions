@@ -1,4 +1,5 @@
 import * as moment from 'moment';
+import * as core from '@actions/core';
 
 /// function that retries promise calls with delays
 /// the delays are incremental and are calculated as follows:
@@ -26,6 +27,15 @@ export async function executeWithRetries<RES>(
             await new Promise(resolve => setTimeout(resolve, delayMs));
             delayMs = Math.min(delayMs * 2, maxDelayMs);
         }
+    }
+    return result;
+}
+
+export function getInputNumber(name: string, options?: core.InputOptions): number {
+    const value = core.getInput(name, options);
+    const result = parseInt(value, 10);
+    if (isNaN(result)) {
+        throw new Error(`Input ${name} is not a number`);
     }
     return result;
 }
