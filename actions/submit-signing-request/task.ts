@@ -188,12 +188,12 @@ export class Task {
         // set retries
         // the delays are powers of 2 * 100ms, with 20% jitter
         // we want to cover 10 minutes of SignPath service unavailability
-        // so we need to do 13 retries
+        // so we need to do 12 retries
         // sum of 2^0 + 2^1 + ... + 2^12 = 2^13 - 1 = 8191
         // 8191 * 100ms = 819.1 seconds = 13.65 minutes
-        // 12 retries will not be enough to cover 10 minutes downtime
+        // 11 retries will not be enough to cover 10 minutes downtime
 
-        const maxRetryCount = 13;
+        const maxRetryCount = 12;
         axiosRetry(axios, {
             retryDelay: axiosRetry.exponentialDelay,
             retries: maxRetryCount,
