@@ -36779,6 +36779,16 @@ class Task {
             retryDelay: retry_1.default.exponentialDelay,
             retries: maxRetryCount
         });
+        // original axiosRetry doesn't work for POST requests
+        retry_1.default.isSafeRequestError = (error) => {
+            var _a;
+            if (!((_a = error.config) === null || _a === void 0 ? void 0 : _a.method)) {
+                // Cannot determine if the request can be retried
+                return false;
+            }
+            console.log('isSafeRequestError CUSTOM');
+            return retry_1.default.isRetryableError(error);
+        };
         // set user agent
         axios_1.default.defaults.headers.common['User-Agent'] = this.buildUserAgent();
     }
