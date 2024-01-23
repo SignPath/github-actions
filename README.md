@@ -33,8 +33,9 @@ steps:
         project-slug: '<SignPath project slug>'
         signing-policy-slug: '<SignPath signing policy slug>'
         artifact-configuration-slug: '<SignPath artifact configuration slug>'
-        artifact-name: '<Name of the Github Actions artifact>'
+        github-artifact-name: '<Name of the Github Actions artifact>'
         github-token: '${{ secrets.GITHUB_TOKEN }}'
+        wait-for-completion: true
         output-artifact-directory: '<Destination path for the signed artifact>'
 ```
 
@@ -50,7 +51,8 @@ steps:
         project-slug: '<SignPath project slug>'
         signing-policy-slug: '<SignPath policy slug>'
         artifact-configuration-slug: '<SignPath artifact configuration slug>'
-        artifact-name: '<Name of the artifact to sign>'
+        github-artifact-name: '<Name of the artifact to sign>'
+        wait-for-completion: false
         github-token: '${{ secrets.GITHUB_TOKEN }}'
 ```
 
