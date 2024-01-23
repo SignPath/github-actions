@@ -36431,7 +36431,12 @@ function isIdempotentRequestError(error) {
         // Cannot determine if the request can be retried
         return false;
     }
-    return isRetryableError(error) && IDEMPOTENT_HTTP_METHODS.indexOf(error.config.method) !== -1;
+    const r = isRetryableError(error);
+    console.log('isIdempotentRequestError isRetryableError(error)', r);
+    const v = IDEMPOTENT_HTTP_METHODS.indexOf(error.config.method) !== -1;
+    console.log('isIdempotentRequestError IDEMPOTENT_HTTP_METHODS.indexOf(error.config.method) !== -1', v);
+    console.log('error.config.method');
+    return r && v;
 }
 exports.isIdempotentRequestError = isIdempotentRequestError;
 function isNetworkOrIdempotentRequestError(error) {
