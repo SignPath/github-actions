@@ -36387,9 +36387,9 @@ const is_retry_allowed_1 = __importDefault(__nccwpck_require__(7809));
 exports.namespace = 'axios-retry';
 function isNetworkError(error) {
     const CODE_EXCLUDE_LIST = ['ERR_CANCELED', 'ECONNABORTED'];
-    console.log('isNetworkError', error);
+    console.log('isNetworkError');
     if (error.response) {
-        console.log('isNetworkError error.response', error.response);
+        console.log('isNetworkError error.response');
         return false;
     }
     if (!error.code) {
@@ -36408,7 +36408,7 @@ exports.isNetworkError = isNetworkError;
 const SAFE_HTTP_METHODS = ['get', 'head', 'options'];
 const IDEMPOTENT_HTTP_METHODS = SAFE_HTTP_METHODS.concat(['put', 'delete']);
 function isRetryableError(error) {
-    console.log('isRetryableError', error);
+    console.log('isRetryableError');
     return (error.code !== 'ECONNABORTED' &&
         (!error.response || (error.response.status >= 500 && error.response.status <= 599)));
 }
@@ -36423,10 +36423,10 @@ function isSafeRequestError(error) {
 }
 exports.isSafeRequestError = isSafeRequestError;
 function isIdempotentRequestError(error) {
-    var _a, _b;
-    console.log('isIdempotentRequestError', error);
+    var _a;
+    console.log('isIdempotentRequestError');
     if (!((_a = error.config) === null || _a === void 0 ? void 0 : _a.method)) {
-        console.log('isIdempotentRequestError !error.config?.method', (_b = error.config) === null || _b === void 0 ? void 0 : _b.method);
+        console.log('isIdempotentRequestError !error.config?.method');
         // Cannot determine if the request can be retried
         return false;
     }
@@ -36435,7 +36435,7 @@ function isIdempotentRequestError(error) {
 exports.isIdempotentRequestError = isIdempotentRequestError;
 function isNetworkOrIdempotentRequestError(error) {
     const c = isNetworkError(error) || isIdempotentRequestError(error);
-    console.log('isNetworkOrIdempotentRequestError' + c);
+    console.log('isNetworkOrIdempotentRequestError:' + c);
     return c;
 }
 exports.isNetworkOrIdempotentRequestError = isNetworkOrIdempotentRequestError;
@@ -36504,14 +36504,14 @@ const axiosRetry = (axiosInstance, defaultOptions) => {
         return config;
     });
     const responseInterceptorId = axiosInstance.interceptors.response.use(null, (error) => __awaiter(void 0, void 0, void 0, function* () {
-        console.log('axiosRetry responseInterceptorId error', error);
+        console.log('axiosRetry responseInterceptorId error');
         const { config } = error;
         // If we have no information to retry the request
         if (!config) {
             return Promise.reject(error);
         }
         const currentState = setCurrentState(config, defaultOptions);
-        console.log('check if retry needed', currentState);
+        console.log('check if retry needed');
         if (yield shouldRetry(currentState, error)) {
             console.log('retry needed');
             currentState.retryCount += 1;
