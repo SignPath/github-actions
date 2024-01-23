@@ -36435,7 +36435,7 @@ function isIdempotentRequestError(error) {
     console.log('isIdempotentRequestError isRetryableError(error)', r);
     const v = IDEMPOTENT_HTTP_METHODS.indexOf(error.config.method) !== -1;
     console.log('isIdempotentRequestError IDEMPOTENT_HTTP_METHODS.indexOf(error.config.method) !== -1', v);
-    console.log('error.config.method');
+    console.log(error.config.method);
     return r && v;
 }
 exports.isIdempotentRequestError = isIdempotentRequestError;
