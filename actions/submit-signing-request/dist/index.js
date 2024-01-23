@@ -36780,13 +36780,18 @@ class Task {
             retries: maxRetryCount
         });
         // original axiosRetry doesn't work for POST requests
-        retry_1.default.isSafeRequestError = (error) => {
+        // thats why we need to override some functions
+        retry_1.default.isNetworkOrIdempotentRequestError = (error) => {
+            console.log('isNetworkOrIdempotentRequestErrorCUSTOM');
+            return retry_1.default.isNetworkError(error) || retry_1.default.isIdempotentRequestError(error);
+        };
+        retry_1.default.isIdempotentRequestError = (error) => {
             var _a;
+            console.log('isIdempotentRequestErrorCUSTOM');
             if (!((_a = error.config) === null || _a === void 0 ? void 0 : _a.method)) {
                 // Cannot determine if the request can be retried
                 return false;
             }
-            console.log('isSafeRequestError CUSTOM');
             return retry_1.default.isRetryableError(error);
         };
         // set user agent
