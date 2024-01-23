@@ -36387,14 +36387,18 @@ const is_retry_allowed_1 = __importDefault(__nccwpck_require__(7809));
 exports.namespace = 'axios-retry';
 function isNetworkError(error) {
     const CODE_EXCLUDE_LIST = ['ERR_CANCELED', 'ECONNABORTED'];
+    console.log('isNetworkError', error);
     if (error.response) {
+        console.log('isNetworkError error.response', error.response);
         return false;
     }
     if (!error.code) {
+        console.log('isNetworkError !error.code', error.code);
         return false;
     }
     // Prevents retrying timed out & cancelled requests
     if (CODE_EXCLUDE_LIST.includes(error.code)) {
+        console.log('isNetworkError CODE_EXCLUDE_LIST.includes(error.code)', error.code);
         return false;
     }
     // Prevents retrying unsafe errors
@@ -36404,6 +36408,7 @@ exports.isNetworkError = isNetworkError;
 const SAFE_HTTP_METHODS = ['get', 'head', 'options'];
 const IDEMPOTENT_HTTP_METHODS = SAFE_HTTP_METHODS.concat(['put', 'delete']);
 function isRetryableError(error) {
+    console.log('isRetryableError', error);
     return (error.code !== 'ECONNABORTED' &&
         (!error.response || (error.response.status >= 500 && error.response.status <= 599)));
 }
@@ -36418,8 +36423,10 @@ function isSafeRequestError(error) {
 }
 exports.isSafeRequestError = isSafeRequestError;
 function isIdempotentRequestError(error) {
-    var _a;
+    var _a, _b;
+    console.log('isIdempotentRequestError', error);
     if (!((_a = error.config) === null || _a === void 0 ? void 0 : _a.method)) {
+        console.log('isIdempotentRequestError !error.config?.method', (_b = error.config) === null || _b === void 0 ? void 0 : _b.method);
         // Cannot determine if the request can be retried
         return false;
     }
@@ -36427,7 +36434,9 @@ function isIdempotentRequestError(error) {
 }
 exports.isIdempotentRequestError = isIdempotentRequestError;
 function isNetworkOrIdempotentRequestError(error) {
-    return isNetworkError(error) || isIdempotentRequestError(error);
+    const c = isNetworkError(error) || isIdempotentRequestError(error);
+    console.log('isNetworkOrIdempotentRequestError' + c);
+    return c;
 }
 exports.isNetworkOrIdempotentRequestError = isNetworkOrIdempotentRequestError;
 function noDelay() {
@@ -36476,7 +36485,9 @@ function shouldRetry(currentState, error) {
         // This could be a promise
         if (typeof shouldRetryOrPromise === 'object') {
             try {
+                console.log('shouldRetryOrPromise');
                 const shouldRetryPromiseResult = yield shouldRetryOrPromise;
+                console.log('shouldRetryPromiseResult');
                 // keep return true unless shouldRetryPromiseResult return false for compatibility
                 return shouldRetryPromiseResult !== false;
             }
