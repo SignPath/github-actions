@@ -6,7 +6,7 @@ import * as moment from 'moment';
 
 import url from 'url';
 import { SubmitSigningRequestResult, ValidationResult } from './dtos/submit-signing-request-result';
-import { executeWithRetries } from './utils';
+import { executeWithRetries, httpErrorResponseToText } from './utils';
 import { SignPathUrlBuilder } from './signpath-url-builder';
 import { SigningRequestDto } from './dtos/signing-request';
 import { HelperInputOutput } from './helper-input-output';
@@ -62,10 +62,7 @@ export class Task {
             submitRequestPayload,
             { responseType: "json" })
             .catch((e: AxiosError) => {
-                if(e.response?.data && typeof(e.response.data) === "string") {
-                    throw new Error(e.response.data);
-                }
-                throw new Error(e.message);
+                throw new Error(httpErrorResponseToText(e));
             }))
             .data;
 
@@ -134,13 +131,7 @@ export class Task {
                     .catch((e: AxiosError) => {
                         core.error(`SignPath API call error: ${e.message}`);
                         core.error(`Signing request details API URL is: ${requestStatusUrl}`);
-                        if(e.response?.data && typeof(e.response.data) === "string") {
-                            throw new Error(JSON.stringify(
-                                {
-                                    'data': e.response.data
-                                }));
-                        }
-                        throw new Error(e.message);
+                        throw new Error(httpErrorResponseToText(e));
                     })
                     .then((response) => {
                         const data = response.data;

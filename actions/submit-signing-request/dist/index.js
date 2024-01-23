@@ -48,6 +48,7 @@ const fs = __importStar(__nccwpck_require__(7147));
 const path = __importStar(__nccwpck_require__(1017));
 const nodeStreamZip = __importStar(__nccwpck_require__(7175));
 const axios_1 = __importDefault(__nccwpck_require__(948));
+const utils_1 = __nccwpck_require__(9586);
 class HelperArtifactDownload {
     constructor(helperInputOutput) {
         this.helperInputOutput = helperInputOutput;
@@ -61,6 +62,9 @@ class HelperArtifactDownload {
                 headers: {
                     Authorization: 'Bearer ' + this.helperInputOutput.signPathApiToken
                 }
+            })
+                .catch((e) => {
+                throw new Error((0, utils_1.httpErrorResponseToText)(e));
             });
             const targetDirectory = this.resolveOrCreateDirectory(this.helperInputOutput.outputArtifactDirectory);
             core.info(`The signed artifact is being downloaded from SignPath and will be saved to ${targetDirectory}`);
@@ -36481,11 +36485,7 @@ class Task {
             const response = (yield axios_1.default
                 .post(this.urlBuilder.buildSubmitSigningRequestUrl(), submitRequestPayload, { responseType: "json" })
                 .catch((e) => {
-                var _a;
-                if (((_a = e.response) === null || _a === void 0 ? void 0 : _a.data) && typeof (e.response.data) === "string") {
-                    throw new Error(e.response.data);
-                }
-                throw new Error(e.message);
+                throw new Error((0, utils_1.httpErrorResponseToText)(e));
             }))
                 .data;
             if (response.error) {
@@ -36534,15 +36534,9 @@ class Task {
                     }
                 })
                     .catch((e) => {
-                    var _a;
                     core.error(`SignPath API call error: ${e.message}`);
                     core.error(`Signing request details API URL is: ${requestStatusUrl}`);
-                    if (((_a = e.response) === null || _a === void 0 ? void 0 : _a.data) && typeof (e.response.data) === "string") {
-                        throw new Error(JSON.stringify({
-                            'data': e.response.data
-                        }));
-                    }
-                    throw new Error(e.message);
+                    throw new Error((0, utils_1.httpErrorResponseToText)(e));
                 })
                     .then((response) => {
                     const data = response.data;
@@ -36659,7 +36653,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getInputNumber = exports.executeWithRetries = void 0;
+exports.httpErrorResponseToText = exports.getInputNumber = exports.executeWithRetries = void 0;
 const moment = __importStar(__nccwpck_require__(7393));
 const core = __importStar(__nccwpck_require__(8163));
 /// function that retries promise calls with delays
@@ -36700,6 +36694,21 @@ function getInputNumber(name, options) {
     return result;
 }
 exports.getInputNumber = getInputNumber;
+function httpErrorResponseToText(err) {
+    const response = err.response;
+    if (response && response.data) {
+        // read error information from response
+        // data is a string
+        if (typeof (response.data) === "string") {
+            return response.data;
+        }
+        else if (typeof (response.data) === "object") {
+            return JSON.stringify(response.data);
+        }
+    }
+    return err.message;
+}
+exports.httpErrorResponseToText = httpErrorResponseToText;
 
 
 /***/ }),

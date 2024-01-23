@@ -2,8 +2,9 @@ import * as core from '@actions/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as nodeStreamZip from 'node-stream-zip';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { HelperInputOutput } from "./helper-input-output";
+import { httpErrorResponseToText } from './utils';
 
 
 export class HelperArtifactDownload {
@@ -18,6 +19,9 @@ export class HelperArtifactDownload {
             headers: {
                 Authorization: 'Bearer ' + this.helperInputOutput.signPathApiToken
             }
+        })
+        .catch((e: AxiosError) => {
+            throw new Error(httpErrorResponseToText(e));
         });
 
         const targetDirectory = this.resolveOrCreateDirectory(this.helperInputOutput.outputArtifactDirectory);
