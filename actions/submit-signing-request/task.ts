@@ -193,7 +193,7 @@ export class Task {
         // so we need to do 13 retries
         // sum of 2^0 + 2^1 + ... + 2^12 = 2^13 - 1 = 8191
         // 8191 * 100ms = 819.1 seconds = 13.65 minutes
-        // nine retries will not be enough to cover 10 minutes downtime
+        // 12 retries will not be enough to cover 10 minutes downtime
 
         const maxRetryCount = 13;
         axiosRetry(axios, {
