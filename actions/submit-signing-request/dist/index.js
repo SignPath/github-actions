@@ -36363,202 +36363,6 @@ exports["default"] = _default;
 
 /***/ }),
 
-/***/ 3012:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-/* tslint:disable */
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.DEFAULT_OPTIONS = exports.exponentialDelay = exports.isNetworkOrIdempotentRequestError = exports.isIdempotentRequestError = exports.isSafeRequestError = exports.isRetryableError = exports.isNetworkError = exports.namespace = void 0;
-const is_retry_allowed_1 = __importDefault(__nccwpck_require__(7809));
-exports.namespace = 'axios-retry';
-function isNetworkError(error) {
-    const CODE_EXCLUDE_LIST = ['ERR_CANCELED', 'ECONNABORTED'];
-    console.log('isNetworkError');
-    if (error.response) {
-        console.log('isNetworkError error.response');
-        return false;
-    }
-    if (!error.code) {
-        console.log('isNetworkError !error.code', error.code);
-        return false;
-    }
-    // Prevents retrying timed out & cancelled requests
-    if (CODE_EXCLUDE_LIST.includes(error.code)) {
-        console.log('isNetworkError CODE_EXCLUDE_LIST.includes(error.code)', error.code);
-        return false;
-    }
-    // Prevents retrying unsafe errors
-    console.log('isNetworkError isRetryAllowed(error)', is_retry_allowed_1.default);
-    return (0, is_retry_allowed_1.default)(error);
-}
-exports.isNetworkError = isNetworkError;
-const SAFE_HTTP_METHODS = ['get', 'head', 'options'];
-const IDEMPOTENT_HTTP_METHODS = SAFE_HTTP_METHODS.concat(['put', 'delete']);
-function isRetryableError(error) {
-    console.log('isRetryableError');
-    return (error.code !== 'ECONNABORTED' &&
-        (!error.response || (error.response.status >= 500 && error.response.status <= 599)));
-}
-exports.isRetryableError = isRetryableError;
-function isSafeRequestError(error) {
-    var _a;
-    if (!((_a = error.config) === null || _a === void 0 ? void 0 : _a.method)) {
-        // Cannot determine if the request can be retried
-        return false;
-    }
-    return isRetryableError(error) && SAFE_HTTP_METHODS.indexOf(error.config.method) !== -1;
-}
-exports.isSafeRequestError = isSafeRequestError;
-function isIdempotentRequestError(error) {
-    var _a;
-    console.log('isIdempotentRequestError');
-    if (!((_a = error.config) === null || _a === void 0 ? void 0 : _a.method)) {
-        console.log('isIdempotentRequestError !error.config?.method');
-        // Cannot determine if the request can be retried
-        return false;
-    }
-    const r = isRetryableError(error);
-    console.log('isIdempotentRequestError isRetryableError(error)', r);
-    const v = IDEMPOTENT_HTTP_METHODS.indexOf(error.config.method) !== -1;
-    console.log('isIdempotentRequestError IDEMPOTENT_HTTP_METHODS.indexOf(error.config.method) !== -1', v);
-    console.log(error.config.method);
-    return r && v;
-}
-exports.isIdempotentRequestError = isIdempotentRequestError;
-function isNetworkOrIdempotentRequestError(error) {
-    const c = isNetworkError(error) || isIdempotentRequestError(error);
-    console.log('isNetworkOrIdempotentRequestError:' + c);
-    return c;
-}
-exports.isNetworkOrIdempotentRequestError = isNetworkOrIdempotentRequestError;
-function noDelay() {
-    return 0;
-}
-function exponentialDelay(retryNumber = 0, _error = undefined, delayFactor = 100) {
-    const delay = Math.pow(2, retryNumber) * delayFactor;
-    const randomSum = delay * 0.2 * Math.random(); // 0-20% of the delay
-    return delay + randomSum;
-}
-exports.exponentialDelay = exponentialDelay;
-exports.DEFAULT_OPTIONS = {
-    retries: 3,
-    retryCondition: isNetworkOrIdempotentRequestError,
-    retryDelay: noDelay,
-    shouldResetTimeout: false,
-    onRetry: () => { }
-};
-function getRequestOptions(config, defaultOptions) {
-    return Object.assign(Object.assign(Object.assign({}, exports.DEFAULT_OPTIONS), defaultOptions), config[exports.namespace]);
-}
-function setCurrentState(config, defaultOptions) {
-    const currentState = getRequestOptions(config, defaultOptions || {});
-    currentState.retryCount = currentState.retryCount || 0;
-    currentState.lastRequestTime = currentState.lastRequestTime || Date.now();
-    config[exports.namespace] = currentState;
-    return currentState;
-}
-function fixConfig(axiosInstance, config) {
-    // @ts-ignore
-    if (axiosInstance.defaults.agent === config.agent) {
-        // @ts-ignore
-        delete config.agent;
-    }
-    if (axiosInstance.defaults.httpAgent === config.httpAgent) {
-        delete config.httpAgent;
-    }
-    if (axiosInstance.defaults.httpsAgent === config.httpsAgent) {
-        delete config.httpsAgent;
-    }
-}
-function shouldRetry(currentState, error) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const { retries, retryCondition } = currentState;
-        const shouldRetryOrPromise = (currentState.retryCount || 0) < retries && retryCondition(error);
-        // This could be a promise
-        if (typeof shouldRetryOrPromise === 'object') {
-            try {
-                console.log('shouldRetryOrPromise');
-                const shouldRetryPromiseResult = yield shouldRetryOrPromise;
-                console.log('shouldRetryPromiseResult');
-                // keep return true unless shouldRetryPromiseResult return false for compatibility
-                return shouldRetryPromiseResult !== false;
-            }
-            catch (_err) {
-                return false;
-            }
-        }
-        return shouldRetryOrPromise;
-    });
-}
-const axiosRetry = (axiosInstance, defaultOptions) => {
-    const requestInterceptorId = axiosInstance.interceptors.request.use((config) => {
-        setCurrentState(config, defaultOptions);
-        return config;
-    });
-    const responseInterceptorId = axiosInstance.interceptors.response.use(null, (error) => __awaiter(void 0, void 0, void 0, function* () {
-        console.log('axiosRetry responseInterceptorId error');
-        const { config } = error;
-        // If we have no information to retry the request
-        if (!config) {
-            return Promise.reject(error);
-        }
-        const currentState = setCurrentState(config, defaultOptions);
-        console.log('check if retry needed');
-        if (yield shouldRetry(currentState, error)) {
-            console.log('retry needed');
-            currentState.retryCount += 1;
-            const { retryDelay, shouldResetTimeout, onRetry } = currentState;
-            const delay = retryDelay(currentState.retryCount, error);
-            console.log('delay', delay);
-            // Axios fails merging this configuration to the default configuration because it has an issue
-            // with circular structures: https://github.com/mzabriskie/axios/issues/370
-            fixConfig(axiosInstance, config);
-            if (!shouldResetTimeout && config.timeout && currentState.lastRequestTime) {
-                const lastRequestDuration = Date.now() - currentState.lastRequestTime;
-                const timeout = config.timeout - lastRequestDuration - delay;
-                if (timeout <= 0) {
-                    console.log('timeout <= 0');
-                    return Promise.reject(error);
-                }
-                config.timeout = timeout;
-            }
-            config.transformRequest = [(data) => data];
-            console.log('before retry');
-            yield onRetry(currentState.retryCount, error, config);
-            return new Promise((resolve) => {
-                setTimeout(() => resolve(axiosInstance(config)), delay);
-            });
-        }
-        return Promise.reject(error);
-    }));
-    return { requestInterceptorId, responseInterceptorId };
-};
-// Compatibility with CommonJS
-axiosRetry.isNetworkError = isNetworkError;
-axiosRetry.isSafeRequestError = isSafeRequestError;
-axiosRetry.isIdempotentRequestError = isIdempotentRequestError;
-axiosRetry.isNetworkOrIdempotentRequestError = isNetworkOrIdempotentRequestError;
-axiosRetry.exponentialDelay = exponentialDelay;
-axiosRetry.isRetryableError = isRetryableError;
-exports["default"] = axiosRetry;
-
-
-/***/ }),
-
 /***/ 2139:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -36636,8 +36440,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Task = void 0;
 const axios_1 = __importDefault(__nccwpck_require__(948));
-// import axiosRetry from 'axios-retry';
-const retry_1 = __importDefault(__nccwpck_require__(3012));
+const axios_retry_1 = __importDefault(__nccwpck_require__(3434));
 const core = __importStar(__nccwpck_require__(8163));
 const moment = __importStar(__nccwpck_require__(7393));
 const url_1 = __importDefault(__nccwpck_require__(7310));
@@ -36770,30 +36573,31 @@ class Task {
     configureAxios() {
         // original axiosRetry doesn't work for POST requests
         // thats why we need to override some functions
-        retry_1.default.isNetworkOrIdempotentRequestError = (error) => {
+        axios_retry_1.default.isNetworkOrIdempotentRequestError = (error) => {
             console.log('isNetworkOrIdempotentRequestErrorCUSTOM');
-            return retry_1.default.isNetworkError(error) || retry_1.default.isIdempotentRequestError(error);
+            return axios_retry_1.default.isNetworkError(error) || axios_retry_1.default.isIdempotentRequestError(error);
         };
-        retry_1.default.isIdempotentRequestError = (error) => {
+        axios_retry_1.default.isIdempotentRequestError = (error) => {
             var _a;
             console.log('isIdempotentRequestErrorCUSTOM');
             if (!((_a = error.config) === null || _a === void 0 ? void 0 : _a.method)) {
                 // Cannot determine if the request can be retried
                 return false;
             }
-            return retry_1.default.isRetryableError(error);
+            return axios_retry_1.default.isRetryableError(error);
         };
         // set retries
-        // the delays are powers of 2 in seconds, with 20% jitter
+        // the delays are powers of 2 * 100ms, with 20% jitter
         // we want to cover 10 minutes of SignPath service unavailability
-        // so we need to do 10 retries
-        // sum of 2^0 + 2^1 + ... + 2^9 = 1023 = 17 minutes
+        // so we need to do 13 retries
+        // sum of 2^0 + 2^1 + ... + 2^12 = 2^13 - 1 = 8191
+        // 8191 * 100ms = 819.1 seconds = 13.65 minutes
         // nine retries will not be enough to cover 10 minutes downtime
-        const maxRetryCount = 10;
-        (0, retry_1.default)(axios_1.default, {
-            retryDelay: retry_1.default.exponentialDelay,
+        const maxRetryCount = 13;
+        (0, axios_retry_1.default)(axios_1.default, {
+            retryDelay: axios_retry_1.default.exponentialDelay,
             retries: maxRetryCount,
-            retryCondition: retry_1.default.isNetworkOrIdempotentRequestError
+            retryCondition: axios_retry_1.default.isNetworkOrIdempotentRequestError
         });
         // set user agent
         axios_1.default.defaults.headers.common['User-Agent'] = this.buildUserAgent();
@@ -39976,6 +39780,178 @@ function parseParams (str) {
 }
 
 module.exports = parseParams
+
+
+/***/ }),
+
+/***/ 3434:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.DEFAULT_OPTIONS = exports.exponentialDelay = exports.isNetworkOrIdempotentRequestError = exports.isIdempotentRequestError = exports.isSafeRequestError = exports.isRetryableError = exports.isNetworkError = exports.namespace = void 0;
+const is_retry_allowed_1 = __importDefault(__nccwpck_require__(7809));
+exports.namespace = 'axios-retry';
+function isNetworkError(error) {
+    const CODE_EXCLUDE_LIST = ['ERR_CANCELED', 'ECONNABORTED'];
+    if (error.response) {
+        return false;
+    }
+    if (!error.code) {
+        return false;
+    }
+    // Prevents retrying timed out & cancelled requests
+    if (CODE_EXCLUDE_LIST.includes(error.code)) {
+        return false;
+    }
+    // Prevents retrying unsafe errors
+    return (0, is_retry_allowed_1.default)(error);
+}
+exports.isNetworkError = isNetworkError;
+const SAFE_HTTP_METHODS = ['get', 'head', 'options'];
+const IDEMPOTENT_HTTP_METHODS = SAFE_HTTP_METHODS.concat(['put', 'delete']);
+function isRetryableError(error) {
+    return (error.code !== 'ECONNABORTED' &&
+        (!error.response || (error.response.status >= 500 && error.response.status <= 599)));
+}
+exports.isRetryableError = isRetryableError;
+function isSafeRequestError(error) {
+    var _a;
+    if (!((_a = error.config) === null || _a === void 0 ? void 0 : _a.method)) {
+        // Cannot determine if the request can be retried
+        return false;
+    }
+    return isRetryableError(error) && SAFE_HTTP_METHODS.indexOf(error.config.method) !== -1;
+}
+exports.isSafeRequestError = isSafeRequestError;
+function isIdempotentRequestError(error) {
+    var _a;
+    if (!((_a = error.config) === null || _a === void 0 ? void 0 : _a.method)) {
+        // Cannot determine if the request can be retried
+        return false;
+    }
+    return isRetryableError(error) && IDEMPOTENT_HTTP_METHODS.indexOf(error.config.method) !== -1;
+}
+exports.isIdempotentRequestError = isIdempotentRequestError;
+function isNetworkOrIdempotentRequestError(error) {
+    return isNetworkError(error) || isIdempotentRequestError(error);
+}
+exports.isNetworkOrIdempotentRequestError = isNetworkOrIdempotentRequestError;
+function noDelay() {
+    return 0;
+}
+function exponentialDelay(retryNumber = 0, _error = undefined, delayFactor = 100) {
+    const delay = Math.pow(2, retryNumber) * delayFactor;
+    const randomSum = delay * 0.2 * Math.random(); // 0-20% of the delay
+    return delay + randomSum;
+}
+exports.exponentialDelay = exponentialDelay;
+exports.DEFAULT_OPTIONS = {
+    retries: 3,
+    retryCondition: isNetworkOrIdempotentRequestError,
+    retryDelay: noDelay,
+    shouldResetTimeout: false,
+    onRetry: () => { }
+};
+function getRequestOptions(config, defaultOptions) {
+    return Object.assign(Object.assign(Object.assign({}, exports.DEFAULT_OPTIONS), defaultOptions), config[exports.namespace]);
+}
+function setCurrentState(config, defaultOptions) {
+    const currentState = getRequestOptions(config, defaultOptions || {});
+    currentState.retryCount = currentState.retryCount || 0;
+    currentState.lastRequestTime = currentState.lastRequestTime || Date.now();
+    config[exports.namespace] = currentState;
+    return currentState;
+}
+function fixConfig(axiosInstance, config) {
+    // @ts-ignore
+    if (axiosInstance.defaults.agent === config.agent) {
+        // @ts-ignore
+        delete config.agent;
+    }
+    if (axiosInstance.defaults.httpAgent === config.httpAgent) {
+        delete config.httpAgent;
+    }
+    if (axiosInstance.defaults.httpsAgent === config.httpsAgent) {
+        delete config.httpsAgent;
+    }
+}
+function shouldRetry(currentState, error) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { retries, retryCondition } = currentState;
+        const shouldRetryOrPromise = (currentState.retryCount || 0) < retries && retryCondition(error);
+        // This could be a promise
+        if (typeof shouldRetryOrPromise === 'object') {
+            try {
+                const shouldRetryPromiseResult = yield shouldRetryOrPromise;
+                // keep return true unless shouldRetryPromiseResult return false for compatibility
+                return shouldRetryPromiseResult !== false;
+            }
+            catch (_err) {
+                return false;
+            }
+        }
+        return shouldRetryOrPromise;
+    });
+}
+const axiosRetry = (axiosInstance, defaultOptions) => {
+    const requestInterceptorId = axiosInstance.interceptors.request.use((config) => {
+        setCurrentState(config, defaultOptions);
+        return config;
+    });
+    const responseInterceptorId = axiosInstance.interceptors.response.use(null, (error) => __awaiter(void 0, void 0, void 0, function* () {
+        const { config } = error;
+        // If we have no information to retry the request
+        if (!config) {
+            return Promise.reject(error);
+        }
+        const currentState = setCurrentState(config, defaultOptions);
+        if (yield shouldRetry(currentState, error)) {
+            currentState.retryCount += 1;
+            const { retryDelay, shouldResetTimeout, onRetry } = currentState;
+            const delay = retryDelay(currentState.retryCount, error);
+            // Axios fails merging this configuration to the default configuration because it has an issue
+            // with circular structures: https://github.com/mzabriskie/axios/issues/370
+            fixConfig(axiosInstance, config);
+            if (!shouldResetTimeout && config.timeout && currentState.lastRequestTime) {
+                const lastRequestDuration = Date.now() - currentState.lastRequestTime;
+                const timeout = config.timeout - lastRequestDuration - delay;
+                if (timeout <= 0) {
+                    return Promise.reject(error);
+                }
+                config.timeout = timeout;
+            }
+            config.transformRequest = [(data) => data];
+            yield onRetry(currentState.retryCount, error, config);
+            return new Promise((resolve) => {
+                setTimeout(() => resolve(axiosInstance(config)), delay);
+            });
+        }
+        return Promise.reject(error);
+    }));
+    return { requestInterceptorId, responseInterceptorId };
+};
+// Compatibility with CommonJS
+axiosRetry.isNetworkError = isNetworkError;
+axiosRetry.isSafeRequestError = isSafeRequestError;
+axiosRetry.isIdempotentRequestError = isIdempotentRequestError;
+axiosRetry.isNetworkOrIdempotentRequestError = isNetworkOrIdempotentRequestError;
+axiosRetry.exponentialDelay = exponentialDelay;
+axiosRetry.isRetryableError = isRetryableError;
+exports["default"] = axiosRetry;
 
 
 /***/ }),

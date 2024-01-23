@@ -170,17 +170,36 @@ export class Task {
     }
 
     private configureAxios(): void {
+
+        // original axiosRetry doesn't work for POST requests
+        // thats why we need to override some functions
+        axiosRetry.isNetworkOrIdempotentRequestError = (error: AxiosError) => {
+            console.log('isNetworkOrIdempotentRequestErrorCUSTOM');
+            return axiosRetry.isNetworkError(error) || axiosRetry.isIdempotentRequestError(error);
+        };
+
+        axiosRetry.isIdempotentRequestError = (error: AxiosError) => {
+            console.log('isIdempotentRequestErrorCUSTOM');
+            if (!error.config?.method) {
+                // Cannot determine if the request can be retried
+                return false;
+            }
+            return axiosRetry.isRetryableError(error);
+        };
+
         // set retries
-        // the delays are powers of 2 in seconds, with 20% jitter
+        // the delays are powers of 2 * 100ms, with 20% jitter
         // we want to cover 10 minutes of SignPath service unavailability
-        // so we need to do 10 retries
-        // sum of 2^0 + 2^1 + ... + 2^9 = 1023 = 17 minutes
+        // so we need to do 13 retries
+        // sum of 2^0 + 2^1 + ... + 2^12 = 2^13 - 1 = 8191
+        // 8191 * 100ms = 819.1 seconds = 13.65 minutes
         // nine retries will not be enough to cover 10 minutes downtime
 
-        const maxRetryCount = 10;
+        const maxRetryCount = 13;
         axiosRetry(axios, {
             retryDelay: axiosRetry.exponentialDelay,
-            retries: maxRetryCount
+            retries: maxRetryCount,
+            retryCondition: axiosRetry.isNetworkOrIdempotentRequestError
         });
 
         // set user agent
