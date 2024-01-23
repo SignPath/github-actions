@@ -36402,6 +36402,7 @@ function isNetworkError(error) {
         return false;
     }
     // Prevents retrying unsafe errors
+    console.log('isNetworkError isRetryAllowed(error)', is_retry_allowed_1.default);
     return (0, is_retry_allowed_1.default)(error);
 }
 exports.isNetworkError = isNetworkError;
