@@ -44,7 +44,7 @@ steps:
         artifact-configuration-slug: '<SignPath artifact configuration slug>'
         artifact-name: '<Name of the Github Actions artifact>'
         github-token: '${{ secrets.GITHUB_TOKEN }}'
-        signed-artifact-destination-path: '<Destination path for the signed artifact>'
+        output-artifact-directory: '<Destination path for the signed artifact>'
 ```
 
 #### Sign published artifact and continue workflow execution (do not download the signed artifact)

@@ -3,7 +3,9 @@ import * as core from '@actions/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as moment from 'moment';
-import * as fileSize from 'filesize'
+import * as nodeStreamZip from 'node-stream-zip';
+
+
 import url from 'url';
 import { SubmitSigningRequestResult } from './dtos/submit-signing-request-result';
 import { executeWithRetries } from './utils';
@@ -31,12 +33,12 @@ export class Task {
         try {
             const signingRequestId = await this.submitSigningRequest();
 
-            if (this.signedArtifactDestinationPath) {
-
-              const signingRequest = await this.ensureSigningRequestCompleted(signingRequestId);
-              const signedArtifactFilePath = await this.downloadTheSignedArtifact(signingRequest);
-              await this.logArtifactFileStat(signedArtifactFilePath);
-
+            if (this.outputArtifactDirectory) {
+                // signed artifacts output path is specified,
+                // so we need to wait for the signing request to be completed
+                // and then download the signed artifact
+                const signingRequest = await this.ensureSigningRequestCompleted(signingRequestId);
+                await this.downloadTheSignedArtifact(signingRequest);
             }
         }
         catch (err) {
@@ -52,8 +54,8 @@ export class Task {
         return core.getInput('artifact-name', { required: true });
     }
 
-    get signedArtifactDestinationPath(): string {
-        return core.getInput('signed-artifact-destination-path', { required: false });
+    get outputArtifactDirectory(): string {
+        return core.getInput('output-artifact-directory', { required: false });
     }
 
     get organizationId(): string {
@@ -221,7 +223,7 @@ export class Task {
         return requestData;
     }
 
-    async downloadTheSignedArtifact(signingRequest: SigningRequestDto): Promise<string> {
+    async downloadTheSignedArtifact(signingRequest: SigningRequestDto): Promise<void> {
         core.setOutput('signed-artifact-download-url', signingRequest.signedArtifactLink);
         core.info(`Signed artifact url ${signingRequest.signedArtifactLink}`);
         const response = await axios.get(signingRequest.signedArtifactLink, {
@@ -231,32 +233,38 @@ export class Task {
             }
         });
 
-        const targetFilePath = path.join(process.env.GITHUB_WORKSPACE as string, this.signedArtifactDestinationPath)
+        const targetDirectory = this.resolveOrCreateDirectory(this.outputArtifactDirectory);
 
-        // make sure that the target directory exists
-        const targetDir = path.dirname(targetFilePath);
-        if (!fs.existsSync(targetDir)) {
-            core.info(`Directory ${targetDir} does not exist, and will be created`);
-            fs.mkdirSync(targetDir, { recursive: true });
-        }
+        core.info(`The signed artifact is being downloaded from SignPath and will be saved to ${targetDirectory}`);
 
-        core.info(`The signed artifact is being downloaded from SignPath and will be saved to ${targetFilePath}`);
-        const writer = fs.createWriteStream(targetFilePath)
+        const rootTmpDir = process.env.RUNNER_TEMP;
+        const tmpDir = fs.mkdtempSync(`${rootTmpDir}${path.sep}`);
+        core.debug(`Created temp directory ${tmpDir}`);
+
+        // save the signed artifact to temp ZIP file
+        const tmpZipFile = path.join(tmpDir, 'artifact_tmp.zip');
+        const writer = fs.createWriteStream(tmpZipFile);
         response.data.pipe(writer);
         await new Promise((resolve, reject) => {
             writer.on('finish', resolve)
             writer.on('error', reject)
         });
 
-        core.info("The signed artifact has been successfully downloaded from SignPath");
-        return targetFilePath;
+        core.debug(`The signed artifact ZIP has been saved to ${tmpZipFile}`);
+
+        core.debug(`Extracting the signed artifact from ${tmpZipFile} to ${targetDirectory}`);
+        // unzip temp ZIP file to the targetDirectory
+        const zip = new nodeStreamZip.async({ file: tmpZipFile });
+        await zip.extract(null, targetDirectory);
+        core.info(`The signed artifact has been successfully downloaded from SignPath and extracted to ${targetDirectory}`);
     }
 
-    async logArtifactFileStat(artifactPath: string) {
-        await fs.stat(artifactPath, (err, stats) => {
-            const size = fileSize.partial({base: 2, standard: "jedec"});
-            core.info("File size: " + size(stats.size));
-        });
+    resolveOrCreateDirectory(relativePath:string): string {
+        const absolutePath = path.join(process.env.GITHUB_WORKSPACE as string, relativePath)
+        if (!fs.existsSync(absolutePath)) {
+            core.info(`Directory "${absolutePath}" does not exist and will be created`);
+            fs.mkdirSync(absolutePath, { recursive: true });
+        }
+        return absolutePath;
     }
-
 }
