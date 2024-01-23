@@ -36574,12 +36574,10 @@ class Task {
         // original axiosRetry doesn't work for POST requests
         // thats why we need to override some functions
         axios_retry_1.default.isNetworkOrIdempotentRequestError = (error) => {
-            console.log('isNetworkOrIdempotentRequestErrorCUSTOM');
             return axios_retry_1.default.isNetworkError(error) || axios_retry_1.default.isIdempotentRequestError(error);
         };
         axios_retry_1.default.isIdempotentRequestError = (error) => {
             var _a;
-            console.log('isIdempotentRequestErrorCUSTOM');
             if (!((_a = error.config) === null || _a === void 0 ? void 0 : _a.method)) {
                 // Cannot determine if the request can be retried
                 return false;
@@ -36592,7 +36590,7 @@ class Task {
         // so we need to do 13 retries
         // sum of 2^0 + 2^1 + ... + 2^12 = 2^13 - 1 = 8191
         // 8191 * 100ms = 819.1 seconds = 13.65 minutes
-        // nine retries will not be enough to cover 10 minutes downtime
+        // 12 retries will not be enough to cover 10 minutes downtime
         const maxRetryCount = 13;
         (0, axios_retry_1.default)(axios_1.default, {
             retryDelay: axios_retry_1.default.exponentialDelay,

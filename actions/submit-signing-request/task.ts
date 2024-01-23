@@ -174,12 +174,10 @@ export class Task {
         // original axiosRetry doesn't work for POST requests
         // thats why we need to override some functions
         axiosRetry.isNetworkOrIdempotentRequestError = (error: AxiosError) => {
-            console.log('isNetworkOrIdempotentRequestErrorCUSTOM');
             return axiosRetry.isNetworkError(error) || axiosRetry.isIdempotentRequestError(error);
         };
 
         axiosRetry.isIdempotentRequestError = (error: AxiosError) => {
-            console.log('isIdempotentRequestErrorCUSTOM');
             if (!error.config?.method) {
                 // Cannot determine if the request can be retried
                 return false;
