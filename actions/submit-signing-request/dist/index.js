@@ -36768,17 +36768,6 @@ class Task {
         });
     }
     configureAxios() {
-        // set retries
-        // the delays are powers of 2 in seconds, with 20% jitter
-        // we want to cover 10 minutes of SignPath service unavailability
-        // so we need to do 10 retries
-        // sum of 2^0 + 2^1 + ... + 2^9 = 1023 = 17 minutes
-        // nine retries will not be enough to cover 10 minutes downtime
-        const maxRetryCount = 10;
-        (0, retry_1.default)(axios_1.default, {
-            retryDelay: retry_1.default.exponentialDelay,
-            retries: maxRetryCount
-        });
         // original axiosRetry doesn't work for POST requests
         // thats why we need to override some functions
         retry_1.default.isNetworkOrIdempotentRequestError = (error) => {
@@ -36794,6 +36783,18 @@ class Task {
             }
             return retry_1.default.isRetryableError(error);
         };
+        // set retries
+        // the delays are powers of 2 in seconds, with 20% jitter
+        // we want to cover 10 minutes of SignPath service unavailability
+        // so we need to do 10 retries
+        // sum of 2^0 + 2^1 + ... + 2^9 = 1023 = 17 minutes
+        // nine retries will not be enough to cover 10 minutes downtime
+        const maxRetryCount = 10;
+        (0, retry_1.default)(axios_1.default, {
+            retryDelay: retry_1.default.exponentialDelay,
+            retries: maxRetryCount,
+            retryCondition: retry_1.default.isNetworkOrIdempotentRequestError
+        });
         // set user agent
         axios_1.default.defaults.headers.common['User-Agent'] = this.buildUserAgent();
     }
