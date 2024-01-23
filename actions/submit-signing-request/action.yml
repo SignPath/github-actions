@@ -27,7 +27,7 @@ inputs:
     default: "600"
     required: false
   download-signed-artifact-timeout-in-seconds:
-    description: 'HTTP timeout used for download signed artifact request'
+    description: 'HTTP timeout when downloading the signed artifact.'
     default: "300"
     required: false
   artifact-configuration-slug:
@@ -41,7 +41,7 @@ inputs:
     default: "true"
     required: false
   output-artifact-directory:
-    description: 'Path where the signed artifact will be saved, if empty then the task will not download the artifact from SignPath'
+    description: 'Path where the signed artifact will be saved. If not specified, the task will not download the artifact from SignPath'
     required: false
   github-token:
     description: 'GitHub access token. Is is recommended to use the default token provided by GitHub: secrets.GITHUB_TOKEN'
