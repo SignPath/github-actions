@@ -56,11 +56,11 @@ steps:
         github-token: '${{ secrets.GITHUB_TOKEN }}'
 ```
 
-#### Timeouts configuration
-Signing request submission could be fine tuned with the following optional parameters:
-- `wait-for-completion-timeout-in-seconds`: Maximum time in seconds that the action will wait for the signing request to complete. Default value is 600 seconds which is 10 minutes. 
-- `service-unavailable-timeout-in-seconds`: Total time in seconds that the action will wait for a single service call to succeed (across several retries). Default value is 600 seconds which is 10 minutes.
-- `download-signed-artifact-timeout-in-seconds`: HTTP timeout used for download signed artifact request. Default value is 300 seconds which is 5 minutes.
+#### Timeout configuration
+The following parameters can be used to specify the different available timeouts:
+- `wait-for-completion-timeout-in-seconds`: Maximum time in seconds that the action will wait for the signing request to complete. Defaults to 600 seconds.
+- `service-unavailable-timeout-in-seconds`: Total time in seconds that the action will wait for a single service call to succeed. Defaults to 600 seconds.
+- `download-signed-artifact-timeout-in-seconds`: HTTP timeout when downloading the signed artifact. Defaults to 300 seconds.
 
 #### Use output parameters
 
