@@ -180,33 +180,22 @@ it('task fails if the submit request connector fails', async () => {
     assert.equal(setFailedStub.calledOnce, true);
 });
 
+
 it('if submit signing request fails with 500, the task retries', async () => {
-    // use real axios for this test, because retries are implemented in axios
+    // use real *POST* axios for this test, because retries are implemented in axios
     axiosPostStub.restore();
 
+    const retryTestId = 'RETRY_TEST_ID';
     // fail twice, then succeed
     nock(testConnectorUrl)
         .post('/api/sign')
-        .twice()
+        .thrice()
         .reply(500, 'Internal Server Error');
     nock(testConnectorUrl)
         .post('/api/sign')
-        .twice()
         .reply(200, {
             signingRequestUrl: testSigningRequestUrl,
-            signingRequestId: testSigningRequestId,
-            isFinalStatus: true,
-            status: 'Completed',
-            signedArtifactLink: testSignedArtifactLink
-        });
-
-    // we use real axios, so need to mock also a call to get signing request status
-    nock(testConnectorUrl)
-        .get(/SigningRequests/)
-        .reply(200, {
-            status: 'Completed',
-            isFinalStatus: true,
-            signedArtifactLink: testSignedArtifactLink
+            signingRequestId: retryTestId
         });
 
     // disable exponential delay to speed up the test
@@ -215,5 +204,5 @@ it('if submit signing request fails with 500, the task retries', async () => {
     await task.run();
 
     // signing request id should be set in the output
-    assert.equal(setOutputStub.calledWith('signing-request-id',  testSigningRequestId), true);
+    assert.equal(setOutputStub.calledWith('signing-request-id',  retryTestId), true);
 });
