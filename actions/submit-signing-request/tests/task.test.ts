@@ -46,26 +46,38 @@ beforeEach(() => {
 
     // set input stubs to return default values
     sandbox.stub(core, 'getInput').callsFake((paramName) => {
-        if(paramName === 'wait-for-completion') { return 'true'; }
-        if(paramName === 'wait-for-completion-timeout-in-seconds') { return '60'; }
-        if(paramName === 'download-signed-artifact-timeout-in-seconds') { return '60'; }
-        if(paramName === 'service-unavailable-timeout-in-seconds') { return '60'; }
-
-        if(paramName === 'api-token') { return testApiToken; }
-        if(paramName === 'github-artifact-name') { return testGitHubArtifactName; }
-        if(paramName === 'github-token') { return testGitHubToken; }
-        if(paramName === 'organization-id') { return testOrganizationId; }
-        if(paramName === 'project-slug') { return testProjectSlug; }
-        if(paramName === 'signing-policy-slug') { return testSigningPolicySlug; }
-        if(paramName === 'artifact-configuration-slug') { return testArtifactConfigurationSlug ; }
-
-        return 'test';
+        switch (paramName) {
+            case 'wait-for-completion':
+                return 'true';
+            case 'wait-for-completion-timeout-in-seconds':
+                return '60';
+            case 'download-signed-artifact-timeout-in-seconds':
+                return '60';
+            case 'service-unavailable-timeout-in-seconds':
+                return '60';
+            case 'api-token':
+                return testApiToken;
+            case 'github-artifact-name':
+                return testGitHubArtifactName;
+            case 'github-token':
+                return testGitHubToken;
+            case 'organization-id':
+                return testOrganizationId;
+            case 'project-slug':
+                return testProjectSlug;
+            case 'signing-policy-slug':
+                return testSigningPolicySlug;
+            case 'artifact-configuration-slug':
+                return testArtifactConfigurationSlug;
+            default:
+                return 'test';
+        }
     });
 
     helperInputOutput = new HelperInputOutput();
     helperArtifactDownload = new HelperArtifactDownload(helperInputOutput);
     // artifact downloading is mocked
-    sandbox.stub(helperArtifactDownload, 'downloadArtifact').resolves();
+    sandbox.stub(helperArtifactDownload, 'downloadSignedArtifact').resolves();
     task = new Task(helperInputOutput, helperArtifactDownload);
 
 });

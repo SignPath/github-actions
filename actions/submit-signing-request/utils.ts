@@ -24,7 +24,7 @@ export async function executeWithRetries<RES>(
             if (Date.now() - startTime > maxTotalWaitingTimeMs) {
                 throw err;
             }
-            console.log(`Next check in ${moment.duration(delayMs).humanize()}`);
+            core.info(`Next check in ${moment.duration(delayMs).humanize()}`);
             await new Promise(resolve => setTimeout(resolve, delayMs));
             delayMs = Math.min(delayMs * 2, maxDelayMs);
         }
@@ -39,6 +39,10 @@ export function getInputNumber(name: string, options?: core.InputOptions): numbe
         throw new Error(`Input ${name} is not a number`);
     }
     return result;
+}
+
+export function BuildSignPathAuthorizationHeader(apiToken: string): string {
+    return `Bearer ${apiToken}`;
 }
 
 export function httpErrorResponseToText(err: AxiosError): string {

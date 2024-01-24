@@ -53,14 +53,14 @@ class HelperArtifactDownload {
     constructor(helperInputOutput) {
         this.helperInputOutput = helperInputOutput;
     }
-    downloadArtifact(artifactDownloadUrl) {
+    downloadSignedArtifact(artifactDownloadUrl) {
         return __awaiter(this, void 0, void 0, function* () {
             core.info(`Signed artifact url ${artifactDownloadUrl}`);
             const response = yield axios_1.default.get(artifactDownloadUrl, {
                 responseType: 'stream',
                 timeout: this.helperInputOutput.downloadSignedArtifactTimeoutInSeconds * 1000,
                 headers: {
-                    Authorization: 'Bearer ' + this.helperInputOutput.signPathApiToken
+                    Authorization: (0, utils_1.BuildSignPathAuthorizationHeader)(this.helperInputOutput.signPathApiToken)
                 }
             })
                 .catch((e) => {
@@ -141,7 +141,7 @@ class HelperInputOutput {
         return core.getInput('github-artifact-name', { required: true });
     }
     get outputArtifactDirectory() {
-        return core.getInput('output-artifact-directory', { required: this.waitForCompletion });
+        return core.getInput('output-artifact-directory', { required: false });
     }
     get waitForCompletion() {
         return core.getInput('wait-for-completion', { required: true }) === 'true';
@@ -162,7 +162,7 @@ class HelperInputOutput {
         return core.getInput('signing-policy-slug', { required: true });
     }
     get artifactConfigurationSlug() {
-        return core.getInput('artifact-configuration-slug', { required: true });
+        return core.getInput('artifact-configuration-slug', { required: false });
     }
     get waitForCompletionTimeoutInSeconds() {
         return (0, utils_1.getInputNumber)('wait-for-completion-timeout-in-seconds', { required: true });
@@ -36468,7 +36468,9 @@ class Task {
                 if (this.helperInputOutput.waitForCompletion) {
                     const signingRequest = yield this.ensureSigningRequestCompleted(signingRequestId);
                     this.helperInputOutput.setSignedArtifactDownloadUrl(signingRequest.signedArtifactLink);
-                    yield this.helperArtifactDownload.downloadArtifact(signingRequest.signedArtifactLink);
+                    if (this.helperInputOutput.outputArtifactDirectory) {
+                        yield this.helperArtifactDownload.downloadSignedArtifact(signingRequest.signedArtifactLink);
+                    }
                 }
             }
             catch (err) {
@@ -36531,7 +36533,7 @@ class Task {
                     .get(requestStatusUrl, {
                     responseType: "json",
                     headers: {
-                        "Authorization": `Bearer ${this.helperInputOutput.signPathApiToken}`
+                        "Authorization": (0, utils_1.BuildSignPathAuthorizationHeader)(this.helperInputOutput.signPathApiToken)
                     }
                 })
                     .catch((e) => {
@@ -36571,6 +36573,8 @@ class Task {
         });
     }
     configureAxios() {
+        // set user agent
+        axios_1.default.defaults.headers.common['User-Agent'] = this.buildUserAgent();
         // original axiosRetry doesn't work for POST requests
         // thats why we need to override some functions
         axios_retry_1.default.isNetworkOrIdempotentRequestError = (error) => {
@@ -36597,8 +36601,6 @@ class Task {
             retries: maxRetryCount,
             retryCondition: axios_retry_1.default.isNetworkOrIdempotentRequestError
         });
-        // set user agent
-        axios_1.default.defaults.headers.common['User-Agent'] = this.buildUserAgent();
     }
     buildUserAgent() {
         const userAgent = `SignPath.SubmitSigningRequestGitHubAction/${version_1.taskVersion}(NodeJS/${process.version}; ${process.platform} ${process.arch}})`;
@@ -36669,7 +36671,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.httpErrorResponseToText = exports.getInputNumber = exports.executeWithRetries = void 0;
+exports.httpErrorResponseToText = exports.BuildSignPathAuthorizationHeader = exports.getInputNumber = exports.executeWithRetries = void 0;
 const moment = __importStar(__nccwpck_require__(7393));
 const core = __importStar(__nccwpck_require__(8163));
 /// function that retries promise calls with delays
@@ -36692,7 +36694,7 @@ function executeWithRetries(promise, maxTotalWaitingTimeMs, minDelayMs, maxDelay
                 if (Date.now() - startTime > maxTotalWaitingTimeMs) {
                     throw err;
                 }
-                console.log(`Next check in ${moment.duration(delayMs).humanize()}`);
+                core.info(`Next check in ${moment.duration(delayMs).humanize()}`);
                 yield new Promise(resolve => setTimeout(resolve, delayMs));
                 delayMs = Math.min(delayMs * 2, maxDelayMs);
             }
@@ -36710,6 +36712,10 @@ function getInputNumber(name, options) {
     return result;
 }
 exports.getInputNumber = getInputNumber;
+function BuildSignPathAuthorizationHeader(apiToken) {
+    return `Bearer ${apiToken}`;
+}
+exports.BuildSignPathAuthorizationHeader = BuildSignPathAuthorizationHeader;
 function httpErrorResponseToText(err) {
     const response = err.response;
     if (response && response.data) {

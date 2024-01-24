@@ -6,7 +6,7 @@ import * as moment from 'moment';
 
 import url from 'url';
 import { SubmitSigningRequestResult, ValidationResult } from './dtos/submit-signing-request-result';
-import { executeWithRetries, httpErrorResponseToText } from './utils';
+import { BuildSignPathAuthorizationHeader, executeWithRetries, httpErrorResponseToText } from './utils';
 import { SignPathUrlBuilder } from './signpath-url-builder';
 import { SigningRequestDto } from './dtos/signing-request';
 import { HelperInputOutput } from './helper-input-output';
@@ -41,7 +41,10 @@ export class Task {
             if (this.helperInputOutput.waitForCompletion) {
                 const signingRequest = await this.ensureSigningRequestCompleted(signingRequestId);
                 this.helperInputOutput.setSignedArtifactDownloadUrl(signingRequest.signedArtifactLink);
-                await this.helperArtifactDownload.downloadArtifact(signingRequest.signedArtifactLink);
+
+                if(this.helperInputOutput.outputArtifactDirectory) {
+                    await this.helperArtifactDownload.downloadSignedArtifact(signingRequest.signedArtifactLink);
+                }
             }
         }
         catch (err) {
@@ -125,7 +128,7 @@ export class Task {
                         {
                             responseType: "json",
                             headers: {
-                                "Authorization": `Bearer ${this.helperInputOutput.signPathApiToken}`
+                                "Authorization": BuildSignPathAuthorizationHeader(this.helperInputOutput.signPathApiToken)
                             }
                         }
                     )
@@ -171,6 +174,9 @@ export class Task {
 
     private configureAxios(): void {
 
+        // set user agent
+        axios.defaults.headers.common['User-Agent'] = this.buildUserAgent();
+
         // original axiosRetry doesn't work for POST requests
         // thats why we need to override some functions
         axiosRetry.isNetworkOrIdempotentRequestError = (error: AxiosError) => {
@@ -200,8 +206,6 @@ export class Task {
             retryCondition: axiosRetry.isNetworkOrIdempotentRequestError
         });
 
-        // set user agent
-        axios.defaults.headers.common['User-Agent'] = this.buildUserAgent();
     }
 
     private buildUserAgent(): string {

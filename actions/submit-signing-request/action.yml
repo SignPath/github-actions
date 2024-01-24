@@ -32,7 +32,7 @@ inputs:
     required: false
   artifact-configuration-slug:
     description: 'SignPath artifact configuration slug'
-    required: true
+    required: false
   github-artifact-name:
     description: 'Name of the Github Actions artifact'
     required: true

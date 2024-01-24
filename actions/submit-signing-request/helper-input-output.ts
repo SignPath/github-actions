@@ -12,7 +12,7 @@ export class HelperInputOutput {
     }
 
     get outputArtifactDirectory(): string {
-        return core.getInput('output-artifact-directory', { required: this.waitForCompletion });
+        return core.getInput('output-artifact-directory', { required: false });
     }
 
     get waitForCompletion(): boolean {
@@ -40,7 +40,7 @@ export class HelperInputOutput {
     }
 
     get artifactConfigurationSlug(): string {
-        return core.getInput('artifact-configuration-slug', { required: true });
+        return core.getInput('artifact-configuration-slug', { required: false });
     }
 
     get waitForCompletionTimeoutInSeconds(): number {

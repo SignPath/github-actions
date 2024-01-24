@@ -4,20 +4,20 @@ import * as path from 'path';
 import * as nodeStreamZip from 'node-stream-zip';
 import axios, { AxiosError } from 'axios';
 import { HelperInputOutput } from "./helper-input-output";
-import { httpErrorResponseToText } from './utils';
+import { BuildSignPathAuthorizationHeader, httpErrorResponseToText } from './utils';
 
 
 export class HelperArtifactDownload {
 
     constructor(private helperInputOutput: HelperInputOutput) { }
 
-    public async downloadArtifact(artifactDownloadUrl: string): Promise<void> {
+    public async downloadSignedArtifact(artifactDownloadUrl: string): Promise<void> {
         core.info(`Signed artifact url ${artifactDownloadUrl}`);
         const response = await axios.get(artifactDownloadUrl, {
             responseType: 'stream',
             timeout: this.helperInputOutput.downloadSignedArtifactTimeoutInSeconds * 1000,
             headers: {
-                Authorization: 'Bearer ' + this.helperInputOutput.signPathApiToken
+                Authorization: BuildSignPathAuthorizationHeader(this.helperInputOutput.signPathApiToken)
             }
         })
         .catch((e: AxiosError) => {
