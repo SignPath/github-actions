@@ -2,11 +2,10 @@ import axios, { AxiosError } from 'axios';
 import axiosRetry from 'axios-retry';
 import * as core from '@actions/core';
 import * as moment from 'moment';
-
-
 import url from 'url';
+
 import { SubmitSigningRequestResult, ValidationResult } from './dtos/submit-signing-request-result';
-import { BuildSignPathAuthorizationHeader, executeWithRetries, httpErrorResponseToText } from './utils';
+import { buildSignPathAuthorizationHeader, executeWithRetries, httpErrorResponseToText } from './utils';
 import { SignPathUrlBuilder } from './signpath-url-builder';
 import { SigningRequestDto } from './dtos/signing-request';
 import { HelperInputOutput } from './helper-input-output';
@@ -128,7 +127,7 @@ export class Task {
                         {
                             responseType: "json",
                             headers: {
-                                "Authorization": BuildSignPathAuthorizationHeader(this.helperInputOutput.signPathApiToken)
+                                "Authorization": buildSignPathAuthorizationHeader(this.helperInputOutput.signPathApiToken)
                             }
                         }
                     )
@@ -190,6 +189,30 @@ export class Task {
             }
             return axiosRetry.isRetryableError(error);
         };
+
+        // by default axiosRetry retries on 5xx errors
+        // we want to change this and retry only 502, 503, 504, 429
+        axiosRetry.isRetryableError = (error: AxiosError) => {
+            let retryableHttpErrorCode = false;
+
+            if(error.response) {
+                if(error.response.status === 502 || error.response.status === 503) {
+                    retryableHttpErrorCode = true;
+                    core.info('SignPath REST API is temporarily unavailable. Please try again in a few moments.');
+                }
+                if(error.response.status === 504) {
+                    retryableHttpErrorCode = true;
+                    core.info(`SignPath REST API answer time exceeded the timeout (${axios.defaults.timeout === 0 ? 'No timeout' : axios.defaults.timeout}).`);
+                }
+                if(error.response.status === 429) {
+                    retryableHttpErrorCode = true;
+                    core.info('SignPath REST API encountered too many requests. Please try again in a few moments.');
+                }
+            }
+
+            return (error.code !== 'ECONNABORTED' &&
+            (!error.response || retryableHttpErrorCode));
+        }
 
         // set retries
         // the delays are powers of 2 * 100ms, with 20% jitter

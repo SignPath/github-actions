@@ -60,7 +60,7 @@ class HelperArtifactDownload {
                 responseType: 'stream',
                 timeout: this.helperInputOutput.downloadSignedArtifactTimeoutInSeconds * 1000,
                 headers: {
-                    Authorization: (0, utils_1.BuildSignPathAuthorizationHeader)(this.helperInputOutput.signPathApiToken)
+                    Authorization: (0, utils_1.buildSignPathAuthorizationHeader)(this.helperInputOutput.signPathApiToken)
                 }
             })
                 .catch((e) => {
@@ -37546,7 +37546,7 @@ class Task {
                     .get(requestStatusUrl, {
                     responseType: "json",
                     headers: {
-                        "Authorization": (0, utils_1.BuildSignPathAuthorizationHeader)(this.helperInputOutput.signPathApiToken)
+                        "Authorization": (0, utils_1.buildSignPathAuthorizationHeader)(this.helperInputOutput.signPathApiToken)
                     }
                 })
                     .catch((e) => {
@@ -37600,6 +37600,27 @@ class Task {
                 return false;
             }
             return axios_retry_1.default.isRetryableError(error);
+        };
+        // by default axiosRetry retries on 5xx errors
+        // we want to change this and retry only 502, 503, 504, 429
+        axios_retry_1.default.isRetryableError = (error) => {
+            let retryableHttpErrorCode = false;
+            if (error.response) {
+                if (error.response.status === 502 || error.response.status === 503) {
+                    retryableHttpErrorCode = true;
+                    core.info('SignPath REST API is temporarily unavailable. Please try again in a few moments.');
+                }
+                if (error.response.status === 504) {
+                    retryableHttpErrorCode = true;
+                    core.info(`SignPath REST API answer time exceeded the timeout (${axios_1.default.defaults.timeout === 0 ? 'No timeout' : axios_1.default.defaults.timeout}).`);
+                }
+                if (error.response.status === 429) {
+                    retryableHttpErrorCode = true;
+                    core.info('SignPath REST API encountered too many requests. Please try again in a few moments.');
+                }
+            }
+            return (error.code !== 'ECONNABORTED' &&
+                (!error.response || retryableHttpErrorCode));
         };
         // set retries
         // the delays are powers of 2 * 100ms, with 20% jitter
@@ -37684,7 +37705,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.httpErrorResponseToText = exports.BuildSignPathAuthorizationHeader = exports.getInputNumber = exports.executeWithRetries = void 0;
+exports.httpErrorResponseToText = exports.buildSignPathAuthorizationHeader = exports.getInputNumber = exports.executeWithRetries = void 0;
 const moment = __importStar(__nccwpck_require__(7393));
 const core = __importStar(__nccwpck_require__(8163));
 /// function that retries promise calls with delays
@@ -37725,10 +37746,10 @@ function getInputNumber(name, options) {
     return result;
 }
 exports.getInputNumber = getInputNumber;
-function BuildSignPathAuthorizationHeader(apiToken) {
+function buildSignPathAuthorizationHeader(apiToken) {
     return `Bearer ${apiToken}`;
 }
-exports.BuildSignPathAuthorizationHeader = BuildSignPathAuthorizationHeader;
+exports.buildSignPathAuthorizationHeader = buildSignPathAuthorizationHeader;
 function httpErrorResponseToText(err) {
     const response = err.response;
     if (response && response.data) {

@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as nodeStreamZip from 'node-stream-zip';
 import axios, { AxiosError } from 'axios';
 import { HelperInputOutput } from "./helper-input-output";
-import { BuildSignPathAuthorizationHeader, httpErrorResponseToText } from './utils';
+import { buildSignPathAuthorizationHeader, httpErrorResponseToText } from './utils';
 
 
 export class HelperArtifactDownload {
@@ -17,7 +17,7 @@ export class HelperArtifactDownload {
             responseType: 'stream',
             timeout: this.helperInputOutput.downloadSignedArtifactTimeoutInSeconds * 1000,
             headers: {
-                Authorization: BuildSignPathAuthorizationHeader(this.helperInputOutput.signPathApiToken)
+                Authorization: buildSignPathAuthorizationHeader(this.helperInputOutput.signPathApiToken)
             }
         })
         .catch((e: AxiosError) => {

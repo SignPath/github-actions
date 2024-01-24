@@ -41,7 +41,7 @@ export function getInputNumber(name: string, options?: core.InputOptions): numbe
     return result;
 }
 
-export function BuildSignPathAuthorizationHeader(apiToken: string): string {
+export function buildSignPathAuthorizationHeader(apiToken: string): string {
     return `Bearer ${apiToken}`;
 }
 

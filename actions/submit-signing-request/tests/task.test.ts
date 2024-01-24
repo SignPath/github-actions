@@ -181,16 +181,20 @@ it('task fails if the submit request connector fails', async () => {
 });
 
 
-it('if submit signing request fails with 500, the task retries', async () => {
+it('if submit signing request fails with 429,502,503,504 the task retries', async () => {
     // use real *POST* axios for this test, because retries are implemented in axios
     axiosPostStub.restore();
 
     const retryTestId = 'RETRY_TEST_ID';
-    // fail twice, then succeed
-    nock(testConnectorUrl)
-        .post('/api/sign')
-        .thrice()
-        .reply(500, 'Internal Server Error');
+    const addErrorResponse = (httpCode: number) => {
+        nock(testConnectorUrl).post('/api/sign').once().reply(httpCode, 'Server Error');
+    }
+
+    addErrorResponse(429);
+    addErrorResponse(502);
+    addErrorResponse(503);
+    addErrorResponse(504);
+
     nock(testConnectorUrl)
         .post('/api/sign')
         .reply(200, {
@@ -205,4 +209,13 @@ it('if submit signing request fails with 500, the task retries', async () => {
 
     // signing request id should be set in the output
     assert.equal(setOutputStub.calledWith('signing-request-id',  retryTestId), true);
+});
+
+it('no retries for http code 500', async () => {
+    // use real *POST* axios for this test, because retries are implemented in axios
+    axiosPostStub.restore();
+    nock(testConnectorUrl).post('/api/sign').reply(500, 'Server Error');
+    const setFailedStub = sandbox.stub(core, 'setFailed');
+    await task.run();
+    assert.equal(setFailedStub.calledOnce, true);
 });
