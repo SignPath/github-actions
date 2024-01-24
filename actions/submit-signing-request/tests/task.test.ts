@@ -49,34 +49,22 @@ beforeEach(() => {
 
     // set input stubs to return default values
     sandbox.stub(core, 'getInput').callsFake((paramName) => {
-        switch (paramName) {
-            case 'wait-for-completion':
-                return 'true';
-            case 'connector-url':
-                return testConnectorUrl;
-            case 'wait-for-completion-timeout-in-seconds':
-                return '60';
-            case 'download-signed-artifact-timeout-in-seconds':
-                return '60';
-            case 'service-unavailable-timeout-in-seconds':
-                return '60';
-            case 'api-token':
-                return testApiToken;
-            case 'github-artifact-name':
-                return testGitHubArtifactName;
-            case 'github-token':
-                return testGitHubToken;
-            case 'organization-id':
-                return testOrganizationId;
-            case 'project-slug':
-                return testProjectSlug;
-            case 'signing-policy-slug':
-                return testSigningPolicySlug;
-            case 'artifact-configuration-slug':
-                return testArtifactConfigurationSlug;
-            default:
-                return 'test';
-        }
+        const inputMap = {
+            'wait-for-completion': 'true',
+            'connector-url': testConnectorUrl,
+            'wait-for-completion-timeout-in-seconds': '60',
+            'download-signed-artifact-timeout-in-seconds': '60',
+            'service-unavailable-timeout-in-seconds': '60',
+            'api-token': testApiToken,
+            'github-artifact-name': testGitHubArtifactName,
+            'github-token': testGitHubToken,
+            'organization-id': testOrganizationId,
+            'project-slug': testProjectSlug,
+            'signing-policy-slug': testSigningPolicySlug,
+            'artifact-configuration-slug': testArtifactConfigurationSlug
+        };
+
+        return inputMap[paramName as keyof typeof inputMap] || 'test';
     });
 
     helperInputOutput = new HelperInputOutput();
