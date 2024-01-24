@@ -42,8 +42,9 @@ steps:
         project-slug: '<SignPath project slug>'
         signing-policy-slug: '<SignPath signing policy slug>'
         artifact-configuration-slug: '<SignPath artifact configuration slug>'
-        artifact-name: '<Name of the Github Actions artifact>'
+        github-artifact-name: '<Name of the Github Actions artifact>'
         github-token: '${{ secrets.GITHUB_TOKEN }}'
+        wait-for-completion: true
         output-artifact-directory: '<Destination path for the signed artifact>'
 ```
 
@@ -59,9 +60,16 @@ steps:
         project-slug: '<SignPath project slug>'
         signing-policy-slug: '<SignPath policy slug>'
         artifact-configuration-slug: '<SignPath artifact configuration slug>'
-        artifact-name: '<Name of the artifact to sign>'
+        github-artifact-name: '<Name of the artifact to sign>'
+        wait-for-completion: false
         github-token: '${{ secrets.GITHUB_TOKEN }}'
 ```
+
+#### Timeout configuration
+The following parameters can be used to specify the different available timeouts:
+- `wait-for-completion-timeout-in-seconds`: Maximum time in seconds that the action will wait for the signing request to complete. Defaults to 600 seconds.
+- `service-unavailable-timeout-in-seconds`: Total time in seconds that the action will wait for a single service call to succeed. Defaults to 600 seconds.
+- `download-signed-artifact-timeout-in-seconds`: HTTP timeout when downloading the signed artifact. Defaults to 300 seconds.
 
 #### Use output parameters
 

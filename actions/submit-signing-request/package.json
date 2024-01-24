@@ -4,7 +4,9 @@
     "@actions/core": "^1.10.0",
     "@actions/http-client": "^2.1.0",
     "axios": "^0.27.2",
+    "axios-retry": "^4.0.0",
     "moment": "^2.29.4",
+    "nock": "^13.5.0",
     "node-stream-zip": "^1.15.0",
     "polly-js": "^1.8.3"
   },

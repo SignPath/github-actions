@@ -1,6 +1,196 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 2198:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.HelperArtifactDownload = void 0;
+const core = __importStar(__nccwpck_require__(8163));
+const fs = __importStar(__nccwpck_require__(7147));
+const path = __importStar(__nccwpck_require__(1017));
+const nodeStreamZip = __importStar(__nccwpck_require__(7175));
+const axios_1 = __importDefault(__nccwpck_require__(948));
+const utils_1 = __nccwpck_require__(9586);
+class HelperArtifactDownload {
+    constructor(helperInputOutput) {
+        this.helperInputOutput = helperInputOutput;
+    }
+    downloadSignedArtifact(artifactDownloadUrl) {
+        return __awaiter(this, void 0, void 0, function* () {
+            core.info(`Signed artifact url ${artifactDownloadUrl}`);
+            const response = yield axios_1.default.get(artifactDownloadUrl, {
+                responseType: 'stream',
+                timeout: this.helperInputOutput.downloadSignedArtifactTimeoutInSeconds * 1000,
+                headers: {
+                    Authorization: (0, utils_1.buildSignPathAuthorizationHeader)(this.helperInputOutput.signPathApiToken)
+                }
+            })
+                .catch((e) => {
+                throw new Error((0, utils_1.httpErrorResponseToText)(e));
+            });
+            const targetDirectory = this.resolveOrCreateDirectory(this.helperInputOutput.outputArtifactDirectory);
+            core.info(`The signed artifact is being downloaded from SignPath and will be saved to ${targetDirectory}`);
+            const rootTmpDir = process.env.RUNNER_TEMP;
+            const tmpDir = fs.mkdtempSync(`${rootTmpDir}${path.sep}`);
+            core.debug(`Created temp directory ${tmpDir}`);
+            // save the signed artifact to temp ZIP file
+            const tmpZipFile = path.join(tmpDir, 'artifact_tmp.zip');
+            const writer = fs.createWriteStream(tmpZipFile);
+            response.data.pipe(writer);
+            yield new Promise((resolve, reject) => {
+                writer.on('finish', resolve);
+                writer.on('error', reject);
+            });
+            core.debug(`The signed artifact ZIP has been saved to ${tmpZipFile}`);
+            core.debug(`Extracting the signed artifact from ${tmpZipFile} to ${targetDirectory}`);
+            // unzip temp ZIP file to the targetDirectory
+            const zip = new nodeStreamZip.async({ file: tmpZipFile });
+            yield zip.extract(null, targetDirectory);
+            core.info(`The signed artifact has been successfully downloaded from SignPath and extracted to ${targetDirectory}`);
+        });
+    }
+    resolveOrCreateDirectory(relativePath) {
+        const absolutePath = path.join(process.env.GITHUB_WORKSPACE, relativePath);
+        if (!fs.existsSync(absolutePath)) {
+            core.info(`Directory "${absolutePath}" does not exist and will be created`);
+            fs.mkdirSync(absolutePath, { recursive: true });
+        }
+        return absolutePath;
+    }
+}
+exports.HelperArtifactDownload = HelperArtifactDownload;
+
+
+/***/ }),
+
+/***/ 7363:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.HelperInputOutput = void 0;
+const core = __importStar(__nccwpck_require__(8163));
+const utils_1 = __nccwpck_require__(9586);
+class HelperInputOutput {
+    get signPathConnectorUrl() {
+        return core.getInput('connector-url', { required: true });
+    }
+    get githubArtifactName() {
+        return core.getInput('github-artifact-name', { required: true });
+    }
+    get outputArtifactDirectory() {
+        return core.getInput('output-artifact-directory', { required: false });
+    }
+    get waitForCompletion() {
+        return core.getInput('wait-for-completion', { required: true }) === 'true';
+    }
+    get organizationId() {
+        return core.getInput('organization-id', { required: true });
+    }
+    get signPathApiToken() {
+        return core.getInput('api-token', { required: true });
+    }
+    get projectSlug() {
+        return core.getInput('project-slug', { required: true });
+    }
+    get gitHubToken() {
+        return core.getInput('github-token', { required: true });
+    }
+    get signingPolicySlug() {
+        return core.getInput('signing-policy-slug', { required: true });
+    }
+    get artifactConfigurationSlug() {
+        return core.getInput('artifact-configuration-slug', { required: false });
+    }
+    get waitForCompletionTimeoutInSeconds() {
+        return (0, utils_1.getInputNumber)('wait-for-completion-timeout-in-seconds', { required: true });
+    }
+    get downloadSignedArtifactTimeoutInSeconds() {
+        return (0, utils_1.getInputNumber)('download-signed-artifact-timeout-in-seconds', { required: true });
+    }
+    get serviceUnavailableTimeoutInSeconds() {
+        return (0, utils_1.getInputNumber)('service-unavailable-timeout-in-seconds', { required: true });
+    }
+    setSignedArtifactDownloadUrl(url) {
+        core.setOutput('signed-artifact-download-url', url);
+    }
+    setSigningRequestId(signingRequestId) {
+        core.setOutput('signing-request-id', signingRequestId);
+    }
+    setSigningRequestWebUrl(signingRequestUrl) {
+        core.setOutput('signing-request-web-url', signingRequestUrl);
+    }
+    setSignPathApiUrl(signingRequestUrl) {
+        core.setOutput('signpath-api-url', signingRequestUrl);
+    }
+}
+exports.HelperInputOutput = HelperInputOutput;
+
+
+/***/ }),
+
 /***/ 7625:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -5287,6 +5477,850 @@ CombinedStream.prototype._emitError = function(err) {
 
 /***/ }),
 
+/***/ 5903:
+/***/ ((module, exports, __nccwpck_require__) => {
+
+/* eslint-env browser */
+
+/**
+ * This is the web browser implementation of `debug()`.
+ */
+
+exports.formatArgs = formatArgs;
+exports.save = save;
+exports.load = load;
+exports.useColors = useColors;
+exports.storage = localstorage();
+exports.destroy = (() => {
+	let warned = false;
+
+	return () => {
+		if (!warned) {
+			warned = true;
+			console.warn('Instance method `debug.destroy()` is deprecated and no longer does anything. It will be removed in the next major version of `debug`.');
+		}
+	};
+})();
+
+/**
+ * Colors.
+ */
+
+exports.colors = [
+	'#0000CC',
+	'#0000FF',
+	'#0033CC',
+	'#0033FF',
+	'#0066CC',
+	'#0066FF',
+	'#0099CC',
+	'#0099FF',
+	'#00CC00',
+	'#00CC33',
+	'#00CC66',
+	'#00CC99',
+	'#00CCCC',
+	'#00CCFF',
+	'#3300CC',
+	'#3300FF',
+	'#3333CC',
+	'#3333FF',
+	'#3366CC',
+	'#3366FF',
+	'#3399CC',
+	'#3399FF',
+	'#33CC00',
+	'#33CC33',
+	'#33CC66',
+	'#33CC99',
+	'#33CCCC',
+	'#33CCFF',
+	'#6600CC',
+	'#6600FF',
+	'#6633CC',
+	'#6633FF',
+	'#66CC00',
+	'#66CC33',
+	'#9900CC',
+	'#9900FF',
+	'#9933CC',
+	'#9933FF',
+	'#99CC00',
+	'#99CC33',
+	'#CC0000',
+	'#CC0033',
+	'#CC0066',
+	'#CC0099',
+	'#CC00CC',
+	'#CC00FF',
+	'#CC3300',
+	'#CC3333',
+	'#CC3366',
+	'#CC3399',
+	'#CC33CC',
+	'#CC33FF',
+	'#CC6600',
+	'#CC6633',
+	'#CC9900',
+	'#CC9933',
+	'#CCCC00',
+	'#CCCC33',
+	'#FF0000',
+	'#FF0033',
+	'#FF0066',
+	'#FF0099',
+	'#FF00CC',
+	'#FF00FF',
+	'#FF3300',
+	'#FF3333',
+	'#FF3366',
+	'#FF3399',
+	'#FF33CC',
+	'#FF33FF',
+	'#FF6600',
+	'#FF6633',
+	'#FF9900',
+	'#FF9933',
+	'#FFCC00',
+	'#FFCC33'
+];
+
+/**
+ * Currently only WebKit-based Web Inspectors, Firefox >= v31,
+ * and the Firebug extension (any Firefox version) are known
+ * to support "%c" CSS customizations.
+ *
+ * TODO: add a `localStorage` variable to explicitly enable/disable colors
+ */
+
+// eslint-disable-next-line complexity
+function useColors() {
+	// NB: In an Electron preload script, document will be defined but not fully
+	// initialized. Since we know we're in Chrome, we'll just detect this case
+	// explicitly
+	if (typeof window !== 'undefined' && window.process && (window.process.type === 'renderer' || window.process.__nwjs)) {
+		return true;
+	}
+
+	// Internet Explorer and Edge do not support colors.
+	if (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/(edge|trident)\/(\d+)/)) {
+		return false;
+	}
+
+	// Is webkit? http://stackoverflow.com/a/16459606/376773
+	// document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
+	return (typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.WebkitAppearance) ||
+		// Is firebug? http://stackoverflow.com/a/398120/376773
+		(typeof window !== 'undefined' && window.console && (window.console.firebug || (window.console.exception && window.console.table))) ||
+		// Is firefox >= v31?
+		// https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
+		(typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31) ||
+		// Double check webkit in userAgent just in case we are in a worker
+		(typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/));
+}
+
+/**
+ * Colorize log arguments if enabled.
+ *
+ * @api public
+ */
+
+function formatArgs(args) {
+	args[0] = (this.useColors ? '%c' : '') +
+		this.namespace +
+		(this.useColors ? ' %c' : ' ') +
+		args[0] +
+		(this.useColors ? '%c ' : ' ') +
+		'+' + module.exports.humanize(this.diff);
+
+	if (!this.useColors) {
+		return;
+	}
+
+	const c = 'color: ' + this.color;
+	args.splice(1, 0, c, 'color: inherit');
+
+	// The final "%c" is somewhat tricky, because there could be other
+	// arguments passed either before or after the %c, so we need to
+	// figure out the correct index to insert the CSS into
+	let index = 0;
+	let lastC = 0;
+	args[0].replace(/%[a-zA-Z%]/g, match => {
+		if (match === '%%') {
+			return;
+		}
+		index++;
+		if (match === '%c') {
+			// We only are interested in the *last* %c
+			// (the user may have provided their own)
+			lastC = index;
+		}
+	});
+
+	args.splice(lastC, 0, c);
+}
+
+/**
+ * Invokes `console.debug()` when available.
+ * No-op when `console.debug` is not a "function".
+ * If `console.debug` is not available, falls back
+ * to `console.log`.
+ *
+ * @api public
+ */
+exports.log = console.debug || console.log || (() => {});
+
+/**
+ * Save `namespaces`.
+ *
+ * @param {String} namespaces
+ * @api private
+ */
+function save(namespaces) {
+	try {
+		if (namespaces) {
+			exports.storage.setItem('debug', namespaces);
+		} else {
+			exports.storage.removeItem('debug');
+		}
+	} catch (error) {
+		// Swallow
+		// XXX (@Qix-) should we be logging these?
+	}
+}
+
+/**
+ * Load `namespaces`.
+ *
+ * @return {String} returns the previously persisted debug modes
+ * @api private
+ */
+function load() {
+	let r;
+	try {
+		r = exports.storage.getItem('debug');
+	} catch (error) {
+		// Swallow
+		// XXX (@Qix-) should we be logging these?
+	}
+
+	// If debug isn't set in LS, and we're in Electron, try to load $DEBUG
+	if (!r && typeof process !== 'undefined' && 'env' in process) {
+		r = process.env.DEBUG;
+	}
+
+	return r;
+}
+
+/**
+ * Localstorage attempts to return the localstorage.
+ *
+ * This is necessary because safari throws
+ * when a user disables cookies/localstorage
+ * and you attempt to access it.
+ *
+ * @return {LocalStorage}
+ * @api private
+ */
+
+function localstorage() {
+	try {
+		// TVMLKit (Apple TV JS Runtime) does not have a window object, just localStorage in the global context
+		// The Browser also has localStorage in the global context.
+		return localStorage;
+	} catch (error) {
+		// Swallow
+		// XXX (@Qix-) should we be logging these?
+	}
+}
+
+module.exports = __nccwpck_require__(9634)(exports);
+
+const {formatters} = module.exports;
+
+/**
+ * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
+ */
+
+formatters.j = function (v) {
+	try {
+		return JSON.stringify(v);
+	} catch (error) {
+		return '[UnexpectedJSONParseError]: ' + error.message;
+	}
+};
+
+
+/***/ }),
+
+/***/ 9634:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+
+/**
+ * This is the common logic for both the Node.js and web browser
+ * implementations of `debug()`.
+ */
+
+function setup(env) {
+	createDebug.debug = createDebug;
+	createDebug.default = createDebug;
+	createDebug.coerce = coerce;
+	createDebug.disable = disable;
+	createDebug.enable = enable;
+	createDebug.enabled = enabled;
+	createDebug.humanize = __nccwpck_require__(9755);
+	createDebug.destroy = destroy;
+
+	Object.keys(env).forEach(key => {
+		createDebug[key] = env[key];
+	});
+
+	/**
+	* The currently active debug mode names, and names to skip.
+	*/
+
+	createDebug.names = [];
+	createDebug.skips = [];
+
+	/**
+	* Map of special "%n" handling functions, for the debug "format" argument.
+	*
+	* Valid key names are a single, lower or upper-case letter, i.e. "n" and "N".
+	*/
+	createDebug.formatters = {};
+
+	/**
+	* Selects a color for a debug namespace
+	* @param {String} namespace The namespace string for the debug instance to be colored
+	* @return {Number|String} An ANSI color code for the given namespace
+	* @api private
+	*/
+	function selectColor(namespace) {
+		let hash = 0;
+
+		for (let i = 0; i < namespace.length; i++) {
+			hash = ((hash << 5) - hash) + namespace.charCodeAt(i);
+			hash |= 0; // Convert to 32bit integer
+		}
+
+		return createDebug.colors[Math.abs(hash) % createDebug.colors.length];
+	}
+	createDebug.selectColor = selectColor;
+
+	/**
+	* Create a debugger with the given `namespace`.
+	*
+	* @param {String} namespace
+	* @return {Function}
+	* @api public
+	*/
+	function createDebug(namespace) {
+		let prevTime;
+		let enableOverride = null;
+		let namespacesCache;
+		let enabledCache;
+
+		function debug(...args) {
+			// Disabled?
+			if (!debug.enabled) {
+				return;
+			}
+
+			const self = debug;
+
+			// Set `diff` timestamp
+			const curr = Number(new Date());
+			const ms = curr - (prevTime || curr);
+			self.diff = ms;
+			self.prev = prevTime;
+			self.curr = curr;
+			prevTime = curr;
+
+			args[0] = createDebug.coerce(args[0]);
+
+			if (typeof args[0] !== 'string') {
+				// Anything else let's inspect with %O
+				args.unshift('%O');
+			}
+
+			// Apply any `formatters` transformations
+			let index = 0;
+			args[0] = args[0].replace(/%([a-zA-Z%])/g, (match, format) => {
+				// If we encounter an escaped % then don't increase the array index
+				if (match === '%%') {
+					return '%';
+				}
+				index++;
+				const formatter = createDebug.formatters[format];
+				if (typeof formatter === 'function') {
+					const val = args[index];
+					match = formatter.call(self, val);
+
+					// Now we need to remove `args[index]` since it's inlined in the `format`
+					args.splice(index, 1);
+					index--;
+				}
+				return match;
+			});
+
+			// Apply env-specific formatting (colors, etc.)
+			createDebug.formatArgs.call(self, args);
+
+			const logFn = self.log || createDebug.log;
+			logFn.apply(self, args);
+		}
+
+		debug.namespace = namespace;
+		debug.useColors = createDebug.useColors();
+		debug.color = createDebug.selectColor(namespace);
+		debug.extend = extend;
+		debug.destroy = createDebug.destroy; // XXX Temporary. Will be removed in the next major release.
+
+		Object.defineProperty(debug, 'enabled', {
+			enumerable: true,
+			configurable: false,
+			get: () => {
+				if (enableOverride !== null) {
+					return enableOverride;
+				}
+				if (namespacesCache !== createDebug.namespaces) {
+					namespacesCache = createDebug.namespaces;
+					enabledCache = createDebug.enabled(namespace);
+				}
+
+				return enabledCache;
+			},
+			set: v => {
+				enableOverride = v;
+			}
+		});
+
+		// Env-specific initialization logic for debug instances
+		if (typeof createDebug.init === 'function') {
+			createDebug.init(debug);
+		}
+
+		return debug;
+	}
+
+	function extend(namespace, delimiter) {
+		const newDebug = createDebug(this.namespace + (typeof delimiter === 'undefined' ? ':' : delimiter) + namespace);
+		newDebug.log = this.log;
+		return newDebug;
+	}
+
+	/**
+	* Enables a debug mode by namespaces. This can include modes
+	* separated by a colon and wildcards.
+	*
+	* @param {String} namespaces
+	* @api public
+	*/
+	function enable(namespaces) {
+		createDebug.save(namespaces);
+		createDebug.namespaces = namespaces;
+
+		createDebug.names = [];
+		createDebug.skips = [];
+
+		let i;
+		const split = (typeof namespaces === 'string' ? namespaces : '').split(/[\s,]+/);
+		const len = split.length;
+
+		for (i = 0; i < len; i++) {
+			if (!split[i]) {
+				// ignore empty strings
+				continue;
+			}
+
+			namespaces = split[i].replace(/\*/g, '.*?');
+
+			if (namespaces[0] === '-') {
+				createDebug.skips.push(new RegExp('^' + namespaces.slice(1) + '$'));
+			} else {
+				createDebug.names.push(new RegExp('^' + namespaces + '$'));
+			}
+		}
+	}
+
+	/**
+	* Disable debug output.
+	*
+	* @return {String} namespaces
+	* @api public
+	*/
+	function disable() {
+		const namespaces = [
+			...createDebug.names.map(toNamespace),
+			...createDebug.skips.map(toNamespace).map(namespace => '-' + namespace)
+		].join(',');
+		createDebug.enable('');
+		return namespaces;
+	}
+
+	/**
+	* Returns true if the given mode name is enabled, false otherwise.
+	*
+	* @param {String} name
+	* @return {Boolean}
+	* @api public
+	*/
+	function enabled(name) {
+		if (name[name.length - 1] === '*') {
+			return true;
+		}
+
+		let i;
+		let len;
+
+		for (i = 0, len = createDebug.skips.length; i < len; i++) {
+			if (createDebug.skips[i].test(name)) {
+				return false;
+			}
+		}
+
+		for (i = 0, len = createDebug.names.length; i < len; i++) {
+			if (createDebug.names[i].test(name)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	* Convert regexp to namespace
+	*
+	* @param {RegExp} regxep
+	* @return {String} namespace
+	* @api private
+	*/
+	function toNamespace(regexp) {
+		return regexp.toString()
+			.substring(2, regexp.toString().length - 2)
+			.replace(/\.\*\?$/, '*');
+	}
+
+	/**
+	* Coerce `val`.
+	*
+	* @param {Mixed} val
+	* @return {Mixed}
+	* @api private
+	*/
+	function coerce(val) {
+		if (val instanceof Error) {
+			return val.stack || val.message;
+		}
+		return val;
+	}
+
+	/**
+	* XXX DO NOT USE. This is a temporary stub function.
+	* XXX It WILL be removed in the next major release.
+	*/
+	function destroy() {
+		console.warn('Instance method `debug.destroy()` is deprecated and no longer does anything. It will be removed in the next major version of `debug`.');
+	}
+
+	createDebug.enable(createDebug.load());
+
+	return createDebug;
+}
+
+module.exports = setup;
+
+
+/***/ }),
+
+/***/ 6413:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+/**
+ * Detect Electron renderer / nwjs process, which is node, but we should
+ * treat as a browser.
+ */
+
+if (typeof process === 'undefined' || process.type === 'renderer' || process.browser === true || process.__nwjs) {
+	module.exports = __nccwpck_require__(5903);
+} else {
+	module.exports = __nccwpck_require__(5473);
+}
+
+
+/***/ }),
+
+/***/ 5473:
+/***/ ((module, exports, __nccwpck_require__) => {
+
+/**
+ * Module dependencies.
+ */
+
+const tty = __nccwpck_require__(6224);
+const util = __nccwpck_require__(3837);
+
+/**
+ * This is the Node.js implementation of `debug()`.
+ */
+
+exports.init = init;
+exports.log = log;
+exports.formatArgs = formatArgs;
+exports.save = save;
+exports.load = load;
+exports.useColors = useColors;
+exports.destroy = util.deprecate(
+	() => {},
+	'Instance method `debug.destroy()` is deprecated and no longer does anything. It will be removed in the next major version of `debug`.'
+);
+
+/**
+ * Colors.
+ */
+
+exports.colors = [6, 2, 3, 4, 5, 1];
+
+try {
+	// Optional dependency (as in, doesn't need to be installed, NOT like optionalDependencies in package.json)
+	// eslint-disable-next-line import/no-extraneous-dependencies
+	const supportsColor = __nccwpck_require__(395);
+
+	if (supportsColor && (supportsColor.stderr || supportsColor).level >= 2) {
+		exports.colors = [
+			20,
+			21,
+			26,
+			27,
+			32,
+			33,
+			38,
+			39,
+			40,
+			41,
+			42,
+			43,
+			44,
+			45,
+			56,
+			57,
+			62,
+			63,
+			68,
+			69,
+			74,
+			75,
+			76,
+			77,
+			78,
+			79,
+			80,
+			81,
+			92,
+			93,
+			98,
+			99,
+			112,
+			113,
+			128,
+			129,
+			134,
+			135,
+			148,
+			149,
+			160,
+			161,
+			162,
+			163,
+			164,
+			165,
+			166,
+			167,
+			168,
+			169,
+			170,
+			171,
+			172,
+			173,
+			178,
+			179,
+			184,
+			185,
+			196,
+			197,
+			198,
+			199,
+			200,
+			201,
+			202,
+			203,
+			204,
+			205,
+			206,
+			207,
+			208,
+			209,
+			214,
+			215,
+			220,
+			221
+		];
+	}
+} catch (error) {
+	// Swallow - we only care if `supports-color` is available; it doesn't have to be.
+}
+
+/**
+ * Build up the default `inspectOpts` object from the environment variables.
+ *
+ *   $ DEBUG_COLORS=no DEBUG_DEPTH=10 DEBUG_SHOW_HIDDEN=enabled node script.js
+ */
+
+exports.inspectOpts = Object.keys(process.env).filter(key => {
+	return /^debug_/i.test(key);
+}).reduce((obj, key) => {
+	// Camel-case
+	const prop = key
+		.substring(6)
+		.toLowerCase()
+		.replace(/_([a-z])/g, (_, k) => {
+			return k.toUpperCase();
+		});
+
+	// Coerce string value into JS value
+	let val = process.env[key];
+	if (/^(yes|on|true|enabled)$/i.test(val)) {
+		val = true;
+	} else if (/^(no|off|false|disabled)$/i.test(val)) {
+		val = false;
+	} else if (val === 'null') {
+		val = null;
+	} else {
+		val = Number(val);
+	}
+
+	obj[prop] = val;
+	return obj;
+}, {});
+
+/**
+ * Is stdout a TTY? Colored output is enabled when `true`.
+ */
+
+function useColors() {
+	return 'colors' in exports.inspectOpts ?
+		Boolean(exports.inspectOpts.colors) :
+		tty.isatty(process.stderr.fd);
+}
+
+/**
+ * Adds ANSI color escape codes if enabled.
+ *
+ * @api public
+ */
+
+function formatArgs(args) {
+	const {namespace: name, useColors} = this;
+
+	if (useColors) {
+		const c = this.color;
+		const colorCode = '\u001B[3' + (c < 8 ? c : '8;5;' + c);
+		const prefix = `  ${colorCode};1m${name} \u001B[0m`;
+
+		args[0] = prefix + args[0].split('\n').join('\n' + prefix);
+		args.push(colorCode + 'm+' + module.exports.humanize(this.diff) + '\u001B[0m');
+	} else {
+		args[0] = getDate() + name + ' ' + args[0];
+	}
+}
+
+function getDate() {
+	if (exports.inspectOpts.hideDate) {
+		return '';
+	}
+	return new Date().toISOString() + ' ';
+}
+
+/**
+ * Invokes `util.format()` with the specified arguments and writes to stderr.
+ */
+
+function log(...args) {
+	return process.stderr.write(util.format(...args) + '\n');
+}
+
+/**
+ * Save `namespaces`.
+ *
+ * @param {String} namespaces
+ * @api private
+ */
+function save(namespaces) {
+	if (namespaces) {
+		process.env.DEBUG = namespaces;
+	} else {
+		// If you set a process.env field to null or undefined, it gets cast to the
+		// string 'null' or 'undefined'. Just delete instead.
+		delete process.env.DEBUG;
+	}
+}
+
+/**
+ * Load `namespaces`.
+ *
+ * @return {String} returns the previously persisted debug modes
+ * @api private
+ */
+
+function load() {
+	return process.env.DEBUG;
+}
+
+/**
+ * Init logic for `debug` instances.
+ *
+ * Create a new `inspectOpts` object in case `useColors` is set
+ * differently for a particular `debug` instance.
+ */
+
+function init(debug) {
+	debug.inspectOpts = {};
+
+	const keys = Object.keys(exports.inspectOpts);
+	for (let i = 0; i < keys.length; i++) {
+		debug.inspectOpts[keys[i]] = exports.inspectOpts[keys[i]];
+	}
+}
+
+module.exports = __nccwpck_require__(9634)(exports);
+
+const {formatters} = module.exports;
+
+/**
+ * Map %o to `util.inspect()`, all on a single line.
+ */
+
+formatters.o = function (v) {
+	this.inspectOpts.colors = this.useColors;
+	return util.inspect(v, this.inspectOpts)
+		.split('\n')
+		.map(str => str.trim())
+		.join(' ');
+};
+
+/**
+ * Map %O to `util.inspect()`, allowing multiple lines if needed.
+ */
+
+formatters.O = function (v) {
+	this.inspectOpts.colors = this.useColors;
+	return util.inspect(v, this.inspectOpts);
+};
+
+
+/***/ }),
+
 /***/ 6427:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -5410,7 +6444,7 @@ module.exports = function () {
   if (!debug) {
     try {
       /* eslint global-require: off */
-      debug = __nccwpck_require__(7984)("follow-redirects");
+      debug = __nccwpck_require__(6413)("follow-redirects");
     }
     catch (error) { /* */ }
     if (typeof debug !== "function") {
@@ -6584,6 +7618,53 @@ module.exports = function(dst, src) {
 
   return dst;
 };
+
+
+/***/ }),
+
+/***/ 7809:
+/***/ ((module) => {
+
+"use strict";
+
+
+const denyList = new Set([
+	'ENOTFOUND',
+	'ENETUNREACH',
+
+	// SSL errors from https://github.com/nodejs/node/blob/fc8e3e2cdc521978351de257030db0076d79e0ab/src/crypto/crypto_common.cc#L301-L328
+	'UNABLE_TO_GET_ISSUER_CERT',
+	'UNABLE_TO_GET_CRL',
+	'UNABLE_TO_DECRYPT_CERT_SIGNATURE',
+	'UNABLE_TO_DECRYPT_CRL_SIGNATURE',
+	'UNABLE_TO_DECODE_ISSUER_PUBLIC_KEY',
+	'CERT_SIGNATURE_FAILURE',
+	'CRL_SIGNATURE_FAILURE',
+	'CERT_NOT_YET_VALID',
+	'CERT_HAS_EXPIRED',
+	'CRL_NOT_YET_VALID',
+	'CRL_HAS_EXPIRED',
+	'ERROR_IN_CERT_NOT_BEFORE_FIELD',
+	'ERROR_IN_CERT_NOT_AFTER_FIELD',
+	'ERROR_IN_CRL_LAST_UPDATE_FIELD',
+	'ERROR_IN_CRL_NEXT_UPDATE_FIELD',
+	'OUT_OF_MEM',
+	'DEPTH_ZERO_SELF_SIGNED_CERT',
+	'SELF_SIGNED_CERT_IN_CHAIN',
+	'UNABLE_TO_GET_ISSUER_CERT_LOCALLY',
+	'UNABLE_TO_VERIFY_LEAF_SIGNATURE',
+	'CERT_CHAIN_TOO_LONG',
+	'CERT_REVOKED',
+	'INVALID_CA',
+	'PATH_LENGTH_EXCEEDED',
+	'INVALID_PURPOSE',
+	'CERT_UNTRUSTED',
+	'CERT_REJECTED',
+	'HOSTNAME_MISMATCH'
+]);
+
+// TODO: Use `error?.code` when targeting Node.js 14
+module.exports = error => !denyList.has(error && error.code);
 
 
 /***/ }),
@@ -12491,6 +13572,175 @@ function populateMaps (extensions, types) {
     return hooks;
 
 })));
+
+
+/***/ }),
+
+/***/ 9755:
+/***/ ((module) => {
+
+/**
+ * Helpers.
+ */
+
+var s = 1000;
+var m = s * 60;
+var h = m * 60;
+var d = h * 24;
+var w = d * 7;
+var y = d * 365.25;
+
+/**
+ * Parse or format the given `val`.
+ *
+ * Options:
+ *
+ *  - `long` verbose formatting [false]
+ *
+ * @param {String|Number} val
+ * @param {Object} [options]
+ * @throws {Error} throw an error if val is not a non-empty string or a number
+ * @return {String|Number}
+ * @api public
+ */
+
+module.exports = function(val, options) {
+  options = options || {};
+  var type = typeof val;
+  if (type === 'string' && val.length > 0) {
+    return parse(val);
+  } else if (type === 'number' && isFinite(val)) {
+    return options.long ? fmtLong(val) : fmtShort(val);
+  }
+  throw new Error(
+    'val is not a non-empty string or a valid number. val=' +
+      JSON.stringify(val)
+  );
+};
+
+/**
+ * Parse the given `str` and return milliseconds.
+ *
+ * @param {String} str
+ * @return {Number}
+ * @api private
+ */
+
+function parse(str) {
+  str = String(str);
+  if (str.length > 100) {
+    return;
+  }
+  var match = /^(-?(?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|weeks?|w|years?|yrs?|y)?$/i.exec(
+    str
+  );
+  if (!match) {
+    return;
+  }
+  var n = parseFloat(match[1]);
+  var type = (match[2] || 'ms').toLowerCase();
+  switch (type) {
+    case 'years':
+    case 'year':
+    case 'yrs':
+    case 'yr':
+    case 'y':
+      return n * y;
+    case 'weeks':
+    case 'week':
+    case 'w':
+      return n * w;
+    case 'days':
+    case 'day':
+    case 'd':
+      return n * d;
+    case 'hours':
+    case 'hour':
+    case 'hrs':
+    case 'hr':
+    case 'h':
+      return n * h;
+    case 'minutes':
+    case 'minute':
+    case 'mins':
+    case 'min':
+    case 'm':
+      return n * m;
+    case 'seconds':
+    case 'second':
+    case 'secs':
+    case 'sec':
+    case 's':
+      return n * s;
+    case 'milliseconds':
+    case 'millisecond':
+    case 'msecs':
+    case 'msec':
+    case 'ms':
+      return n;
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * Short format for `ms`.
+ *
+ * @param {Number} ms
+ * @return {String}
+ * @api private
+ */
+
+function fmtShort(ms) {
+  var msAbs = Math.abs(ms);
+  if (msAbs >= d) {
+    return Math.round(ms / d) + 'd';
+  }
+  if (msAbs >= h) {
+    return Math.round(ms / h) + 'h';
+  }
+  if (msAbs >= m) {
+    return Math.round(ms / m) + 'm';
+  }
+  if (msAbs >= s) {
+    return Math.round(ms / s) + 's';
+  }
+  return ms + 'ms';
+}
+
+/**
+ * Long format for `ms`.
+ *
+ * @param {Number} ms
+ * @return {String}
+ * @api private
+ */
+
+function fmtLong(ms) {
+  var msAbs = Math.abs(ms);
+  if (msAbs >= d) {
+    return plural(ms, msAbs, d, 'day');
+  }
+  if (msAbs >= h) {
+    return plural(ms, msAbs, h, 'hour');
+  }
+  if (msAbs >= m) {
+    return plural(ms, msAbs, m, 'minute');
+  }
+  if (msAbs >= s) {
+    return plural(ms, msAbs, s, 'second');
+  }
+  return ms + ' ms';
+}
+
+/**
+ * Pluralization helper.
+ */
+
+function plural(ms, msAbs, n, name) {
+  var isPlural = msAbs >= n * 1.5;
+  return Math.round(ms / n) + ' ' + name + (isPlural ? 's' : '');
+}
 
 
 /***/ }),
@@ -36203,36 +37453,37 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Task = void 0;
 const axios_1 = __importDefault(__nccwpck_require__(948));
+const axios_retry_1 = __importDefault(__nccwpck_require__(3434));
 const core = __importStar(__nccwpck_require__(8163));
-const fs = __importStar(__nccwpck_require__(7147));
-const path = __importStar(__nccwpck_require__(1017));
 const moment = __importStar(__nccwpck_require__(7393));
-const nodeStreamZip = __importStar(__nccwpck_require__(7175));
 const url_1 = __importDefault(__nccwpck_require__(7310));
 const utils_1 = __nccwpck_require__(9586);
 const signpath_url_builder_1 = __nccwpck_require__(2139);
-const MaxWaitingTimeForSigningRequestCompletionMs = 1000 * 60 * 60;
-const MinDelayBetweenSigningRequestStatusChecksMs = 1000 * 60; // start from 1 min
-const MaxDelayBetweenSigningRequestStatusChecksMs = 1000 * 60 * 20; // check at least every 30 minutes
+const version_1 = __nccwpck_require__(2398);
+const MinDelayBetweenSigningRequestStatusChecksInSeconds = 10; // start from 10 sec
+const MaxDelayBetweenSigningRequestStatusChecksInSeconds = 60 * 20; // check at least every 30 minutes
 // output variables
 // signingRequestId - the id of the newly created signing request
 // signingRequestWebUrl - the url of the signing request in SignPath
 // signPathApiUrl - the base API url of the SignPath API
 // signingRequestDownloadUrl - the url of the signed artifact in SignPath
 class Task {
-    constructor() {
-        this.urlBuilder = new signpath_url_builder_1.SignPathUrlBuilder(this.signPathConnectorUrl);
+    constructor(helperInputOutput, helperArtifactDownload) {
+        this.helperInputOutput = helperInputOutput;
+        this.helperArtifactDownload = helperArtifactDownload;
+        this.urlBuilder = new signpath_url_builder_1.SignPathUrlBuilder(this.helperInputOutput.signPathConnectorUrl);
     }
     run() {
         return __awaiter(this, void 0, void 0, function* () {
+            this.configureAxios();
             try {
                 const signingRequestId = yield this.submitSigningRequest();
-                if (this.outputArtifactDirectory) {
-                    // signed artifacts output path is specified,
-                    // so we need to wait for the signing request to be completed
-                    // and then download the signed artifact
+                if (this.helperInputOutput.waitForCompletion) {
                     const signingRequest = yield this.ensureSigningRequestCompleted(signingRequestId);
-                    yield this.downloadTheSignedArtifact(signingRequest);
+                    this.helperInputOutput.setSignedArtifactDownloadUrl(signingRequest.signedArtifactLink);
+                    if (this.helperInputOutput.outputArtifactDirectory) {
+                        yield this.helperArtifactDownload.downloadSignedArtifact(signingRequest.signedArtifactLink);
+                    }
                 }
             }
             catch (err) {
@@ -36240,116 +37491,68 @@ class Task {
             }
         });
     }
-    get signPathConnectorUrl() {
-        return core.getInput('connector-url', { required: true });
-    }
-    get artifactName() {
-        return core.getInput('artifact-name', { required: true });
-    }
-    get outputArtifactDirectory() {
-        return core.getInput('output-artifact-directory', { required: false });
-    }
-    get organizationId() {
-        return core.getInput('organization-id', { required: true });
-    }
-    get signPathToken() {
-        return core.getInput('api-token', { required: true });
-    }
-    get projectSlug() {
-        return core.getInput('project-slug', { required: true });
-    }
-    get gitHubToken() {
-        return core.getInput('github-token', { required: true });
-    }
-    get signingPolicySlug() {
-        return core.getInput('signing-policy-slug', { required: true });
-    }
-    get artifactConfigurationSlug() {
-        return core.getInput('artifact-configuration-slug', { required: true });
-    }
     submitSigningRequest() {
         return __awaiter(this, void 0, void 0, function* () {
             core.info('Submitting the signing request to SignPath CI connector...');
             // prepare the payload
-            const submitRequestPayload = {
-                apiToken: this.signPathToken,
-                artifactName: this.artifactName,
-                gitHubApiUrl: process.env.GITHUB_API_URL,
-                gitHubWorkflowRunId: process.env.GITHUB_RUN_ID,
-                gitHubRepository: process.env.GITHUB_REPOSITORY,
-                gitHubToken: this.gitHubToken,
-                signPathOrganizationId: this.organizationId,
-                signPathProjectSlug: this.projectSlug,
-                signPathSigningPolicySlug: this.signingPolicySlug,
-                signPathArtifactConfigurationSlug: this.artifactConfigurationSlug
-            };
+            const submitRequestPayload = this.buildSigningRequestPayload();
             // call the signPath API to submit the signing request
             const response = (yield axios_1.default
                 .post(this.urlBuilder.buildSubmitSigningRequestUrl(), submitRequestPayload, { responseType: "json" })
                 .catch((e) => {
-                var _a;
-                core.error(`SignPath API call error: ${e.message}.`);
-                if (((_a = e.response) === null || _a === void 0 ? void 0 : _a.data) && typeof (e.response.data) === "string") {
-                    throw new Error(e.response.data);
-                }
-                throw new Error(e.message);
+                core.error(`SignPath API call error: ${e.message}`);
+                throw new Error((0, utils_1.httpErrorResponseToText)(e));
             }))
                 .data;
             if (response.error) {
                 // got error from the connector
                 throw new Error(response.error);
             }
-            if (response.validationResult && response.validationResult.errors.length > 0) {
-                // got validation errors from the connector
-                core.startGroup('CI system setup validation errors');
-                core.error(`[error]Build artifact \"${this.artifactName}\" cannot be signed because of continuous integration system setup validation errors:`);
-                response.validationResult.errors.forEach(validationError => {
-                    core.error(`[error]${validationError.error}`);
-                    if (validationError.howToFix) {
-                        core.info(validationError.howToFix);
-                    }
-                });
-                core.endGroup();
-                throw new Error("CI system validation failed.");
-            }
-            if (!response.signingRequestId) {
-                // got error from the connector
-                throw new Error(`SignPath signing request was not created. Please make sure that SignPathConnectorUrl is pointing to the SignPath GitHub Actions connector endpoint.`);
-            }
+            this.checkResponseStructure(response);
+            this.checkCiSystemValidationResult(response.validationResult);
             const signingRequestUrlObj = url_1.default.parse(response.signingRequestUrl);
             this.urlBuilder.signPathBaseUrl = signingRequestUrlObj.protocol + '//' + signingRequestUrlObj.host;
             core.info(`SignPath signing request has been successfully submitted`);
             core.info(`The signing request id is ${response.signingRequestId}`);
             core.info(`You can view the signing request here: ${response.signingRequestUrl}`);
-            core.setOutput('signing-request-id', response.signingRequestId);
-            core.setOutput('signing-request-web-url', response.signingRequestUrl);
-            core.setOutput('signpath-api-url', this.urlBuilder.signPathBaseUrl + '/API');
+            this.helperInputOutput.setSigningRequestId(response.signingRequestId);
+            this.helperInputOutput.setSigningRequestWebUrl(response.signingRequestUrl);
+            this.helperInputOutput.setSignPathApiUrl(this.urlBuilder.signPathBaseUrl + '/API');
             return response.signingRequestId;
         });
+    }
+    checkCiSystemValidationResult(validationResult) {
+        if (validationResult && validationResult.errors.length > 0) {
+            // got validation errors from the connector
+            core.startGroup('CI system setup validation errors');
+            core.error(`[error]Build artifact \"${this.helperInputOutput.githubArtifactName}\" cannot be signed because of continuous integration system setup validation errors:`);
+            validationResult.errors.forEach(validationError => {
+                core.error(`[error]${validationError.error}`);
+                if (validationError.howToFix) {
+                    core.info(validationError.howToFix);
+                }
+            });
+            core.endGroup();
+            throw new Error("CI system validation failed.");
+        }
     }
     ensureSigningRequestCompleted(signingRequestId) {
         return __awaiter(this, void 0, void 0, function* () {
             // check for status update
             core.info(`Checking the signing request status...`);
             const requestData = yield ((0, utils_1.executeWithRetries)(() => __awaiter(this, void 0, void 0, function* () {
-                const requestStatusUrl = this.urlBuilder.buildGetSigningRequestUrl(this.organizationId, signingRequestId);
+                const requestStatusUrl = this.urlBuilder.buildGetSigningRequestUrl(this.helperInputOutput.organizationId, signingRequestId);
                 const signingRequestDto = (yield axios_1.default
                     .get(requestStatusUrl, {
                     responseType: "json",
                     headers: {
-                        "Authorization": `Bearer ${this.signPathToken}`
+                        "Authorization": (0, utils_1.buildSignPathAuthorizationHeader)(this.helperInputOutput.signPathApiToken)
                     }
                 })
                     .catch((e) => {
-                    var _a;
                     core.error(`SignPath API call error: ${e.message}`);
                     core.error(`Signing request details API URL is: ${requestStatusUrl}`);
-                    if (((_a = e.response) === null || _a === void 0 ? void 0 : _a.data) && typeof (e.response.data) === "string") {
-                        throw new Error(JSON.stringify({
-                            'data': e.response.data
-                        }));
-                    }
-                    throw new Error(e.message);
+                    throw new Error((0, utils_1.httpErrorResponseToText)(e));
                 })
                     .then((response) => {
                     const data = response.data;
@@ -36360,7 +37563,7 @@ class Task {
                     return data;
                 }));
                 return signingRequestDto;
-            }), MaxWaitingTimeForSigningRequestCompletionMs, MinDelayBetweenSigningRequestStatusChecksMs, MaxDelayBetweenSigningRequestStatusChecksMs)
+            }), this.helperInputOutput.waitForCompletionTimeoutInSeconds * 1000, MinDelayBetweenSigningRequestStatusChecksInSeconds * 1000, MaxDelayBetweenSigningRequestStatusChecksInSeconds * 1000)
                 .catch((e) => {
                 if (e.message.startsWith('{')) {
                     const errorData = JSON.parse(e.message);
@@ -36370,7 +37573,7 @@ class Task {
             }));
             core.info(`Signing request status is ${requestData.status}`);
             if (!requestData.isFinalStatus) {
-                const maxWaitingTime = moment.utc(MaxWaitingTimeForSigningRequestCompletionMs).format("hh:mm");
+                const maxWaitingTime = moment.utc(this.helperInputOutput.waitForCompletionTimeoutInSeconds * 1000).format("hh:mm");
                 core.error(`We have exceeded the maximum waiting time, which is ${maxWaitingTime}, and the signing request is still not in a final state`);
                 throw new Error(`The signing request is not completed. The current status is "${requestData.status}`);
             }
@@ -36382,44 +37585,81 @@ class Task {
             return requestData;
         });
     }
-    downloadTheSignedArtifact(signingRequest) {
-        return __awaiter(this, void 0, void 0, function* () {
-            core.setOutput('signed-artifact-download-url', signingRequest.signedArtifactLink);
-            core.info(`Signed artifact url ${signingRequest.signedArtifactLink}`);
-            const response = yield axios_1.default.get(signingRequest.signedArtifactLink, {
-                responseType: 'stream',
-                headers: {
-                    Authorization: 'Bearer ' + this.signPathToken
+    configureAxios() {
+        // set user agent
+        axios_1.default.defaults.headers.common['User-Agent'] = this.buildUserAgent();
+        // original axiosRetry doesn't work for POST requests
+        // thats why we need to override some functions
+        axios_retry_1.default.isNetworkOrIdempotentRequestError = (error) => {
+            return axios_retry_1.default.isNetworkError(error) || axios_retry_1.default.isIdempotentRequestError(error);
+        };
+        axios_retry_1.default.isIdempotentRequestError = (error) => {
+            var _a;
+            if (!((_a = error.config) === null || _a === void 0 ? void 0 : _a.method)) {
+                // Cannot determine if the request can be retried
+                return false;
+            }
+            return axios_retry_1.default.isRetryableError(error);
+        };
+        // by default axiosRetry retries on 5xx errors
+        // we want to change this and retry only 502, 503, 504, 429
+        axios_retry_1.default.isRetryableError = (error) => {
+            let retryableHttpErrorCode = false;
+            if (error.response) {
+                if (error.response.status === 502 || error.response.status === 503) {
+                    retryableHttpErrorCode = true;
+                    core.info('SignPath REST API is temporarily unavailable. Please try again in a few moments.');
                 }
-            });
-            const targetDirectory = this.resolveOrCreateDirectory(this.outputArtifactDirectory);
-            core.info(`The signed artifact is being downloaded from SignPath and will be saved to ${targetDirectory}`);
-            const rootTmpDir = process.env.RUNNER_TEMP;
-            const tmpDir = fs.mkdtempSync(`${rootTmpDir}${path.sep}`);
-            core.debug(`Created temp directory ${tmpDir}`);
-            // save the signed artifact to temp ZIP file
-            const tmpZipFile = path.join(tmpDir, 'artifact_tmp.zip');
-            const writer = fs.createWriteStream(tmpZipFile);
-            response.data.pipe(writer);
-            yield new Promise((resolve, reject) => {
-                writer.on('finish', resolve);
-                writer.on('error', reject);
-            });
-            core.debug(`The signed artifact ZIP has been saved to ${tmpZipFile}`);
-            core.debug(`Extracting the signed artifact from ${tmpZipFile} to ${targetDirectory}`);
-            // unzip temp ZIP file to the targetDirectory
-            const zip = new nodeStreamZip.async({ file: tmpZipFile });
-            yield zip.extract(null, targetDirectory);
-            core.info(`The signed artifact has been successfully downloaded from SignPath and extracted to ${targetDirectory}`);
+                if (error.response.status === 504) {
+                    retryableHttpErrorCode = true;
+                    core.info(`SignPath REST API answer time exceeded the timeout (${axios_1.default.defaults.timeout === 0 ? 'No timeout' : axios_1.default.defaults.timeout}).`);
+                }
+                if (error.response.status === 429) {
+                    retryableHttpErrorCode = true;
+                    core.info('SignPath REST API encountered too many requests. Please try again in a few moments.');
+                }
+            }
+            return (error.code !== 'ECONNABORTED' &&
+                (!error.response || retryableHttpErrorCode));
+        };
+        // set retries
+        // the delays are powers of 2 * 100ms, with 20% jitter
+        // we want to cover 10 minutes of SignPath service unavailability
+        // so we need to do 12 retries
+        // sum of 2^0 + 2^1 + ... + 2^12 = 2^13 - 1 = 8191
+        // 8191 * 100ms = 819.1 seconds = 13.65 minutes
+        // 11 retries will not be enough to cover 10 minutes downtime
+        const maxRetryCount = 12;
+        (0, axios_retry_1.default)(axios_1.default, {
+            retryDelay: axios_retry_1.default.exponentialDelay,
+            retries: maxRetryCount,
+            retryCondition: axios_retry_1.default.isNetworkOrIdempotentRequestError
         });
     }
-    resolveOrCreateDirectory(relativePath) {
-        const absolutePath = path.join(process.env.GITHUB_WORKSPACE, relativePath);
-        if (!fs.existsSync(absolutePath)) {
-            core.info(`Directory "${absolutePath}" does not exist and will be created`);
-            fs.mkdirSync(absolutePath, { recursive: true });
+    buildUserAgent() {
+        const userAgent = `SignPath.SubmitSigningRequestGitHubAction/${version_1.taskVersion}(NodeJS/${process.version}; ${process.platform} ${process.arch}})`;
+        return userAgent;
+    }
+    checkResponseStructure(response) {
+        if (!response.validationResult && !response.signingRequestId) {
+            // if neither validationResult nor signingRequestId are present,
+            // then the response might be not from the connector
+            throw new Error(`SignPath signing request was not created. Please make sure that connector-url is pointing to the SignPath GitHub Actions connector endpoint.`);
         }
-        return absolutePath;
+    }
+    buildSigningRequestPayload() {
+        return {
+            apiToken: this.helperInputOutput.signPathApiToken,
+            artifactName: this.helperInputOutput.githubArtifactName,
+            gitHubApiUrl: process.env.GITHUB_API_URL,
+            gitHubWorkflowRunId: process.env.GITHUB_RUN_ID,
+            gitHubRepository: process.env.GITHUB_REPOSITORY,
+            gitHubToken: this.helperInputOutput.gitHubToken,
+            signPathOrganizationId: this.helperInputOutput.organizationId,
+            signPathProjectSlug: this.helperInputOutput.projectSlug,
+            signPathSigningPolicySlug: this.helperInputOutput.signingPolicySlug,
+            signPathArtifactConfigurationSlug: this.helperInputOutput.artifactConfigurationSlug
+        };
     }
 }
 exports.Task = Task;
@@ -36465,8 +37705,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.executeWithRetries = void 0;
+exports.httpErrorResponseToText = exports.buildSignPathAuthorizationHeader = exports.getInputNumber = exports.executeWithRetries = void 0;
 const moment = __importStar(__nccwpck_require__(7393));
+const core = __importStar(__nccwpck_require__(8163));
 /// function that retries promise calls with delays
 /// the delays are incremental and are calculated as follows:
 /// 1. start with minDelay
@@ -36487,7 +37728,7 @@ function executeWithRetries(promise, maxTotalWaitingTimeMs, minDelayMs, maxDelay
                 if (Date.now() - startTime > maxTotalWaitingTimeMs) {
                     throw err;
                 }
-                console.log(`Next check in ${moment.duration(delayMs).humanize()}`);
+                core.info(`Next check in ${moment.duration(delayMs).humanize()}`);
                 yield new Promise(resolve => setTimeout(resolve, delayMs));
                 delayMs = Math.min(delayMs * 2, maxDelayMs);
             }
@@ -36496,1019 +37737,47 @@ function executeWithRetries(promise, maxTotalWaitingTimeMs, minDelayMs, maxDelay
     });
 }
 exports.executeWithRetries = executeWithRetries;
+function getInputNumber(name, options) {
+    const value = core.getInput(name, options);
+    const result = parseInt(value, 10);
+    if (isNaN(result)) {
+        throw new Error(`Input ${name} is not a number`);
+    }
+    return result;
+}
+exports.getInputNumber = getInputNumber;
+function buildSignPathAuthorizationHeader(apiToken) {
+    return `Bearer ${apiToken}`;
+}
+exports.buildSignPathAuthorizationHeader = buildSignPathAuthorizationHeader;
+function httpErrorResponseToText(err) {
+    const response = err.response;
+    if (response && response.data) {
+        // read error information from response
+        // data is a string
+        if (typeof (response.data) === "string") {
+            return response.data;
+        }
+        else if (typeof (response.data) === "object") {
+            return JSON.stringify(response.data);
+        }
+    }
+    return err.message;
+}
+exports.httpErrorResponseToText = httpErrorResponseToText;
 
 
 /***/ }),
 
-/***/ 5535:
-/***/ ((module) => {
-
-/**
- * Helpers.
- */
-
-var s = 1000;
-var m = s * 60;
-var h = m * 60;
-var d = h * 24;
-var w = d * 7;
-var y = d * 365.25;
-
-/**
- * Parse or format the given `val`.
- *
- * Options:
- *
- *  - `long` verbose formatting [false]
- *
- * @param {String|Number} val
- * @param {Object} [options]
- * @throws {Error} throw an error if val is not a non-empty string or a number
- * @return {String|Number}
- * @api public
- */
-
-module.exports = function(val, options) {
-  options = options || {};
-  var type = typeof val;
-  if (type === 'string' && val.length > 0) {
-    return parse(val);
-  } else if (type === 'number' && isFinite(val)) {
-    return options.long ? fmtLong(val) : fmtShort(val);
-  }
-  throw new Error(
-    'val is not a non-empty string or a valid number. val=' +
-      JSON.stringify(val)
-  );
-};
-
-/**
- * Parse the given `str` and return milliseconds.
- *
- * @param {String} str
- * @return {Number}
- * @api private
- */
-
-function parse(str) {
-  str = String(str);
-  if (str.length > 100) {
-    return;
-  }
-  var match = /^(-?(?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|weeks?|w|years?|yrs?|y)?$/i.exec(
-    str
-  );
-  if (!match) {
-    return;
-  }
-  var n = parseFloat(match[1]);
-  var type = (match[2] || 'ms').toLowerCase();
-  switch (type) {
-    case 'years':
-    case 'year':
-    case 'yrs':
-    case 'yr':
-    case 'y':
-      return n * y;
-    case 'weeks':
-    case 'week':
-    case 'w':
-      return n * w;
-    case 'days':
-    case 'day':
-    case 'd':
-      return n * d;
-    case 'hours':
-    case 'hour':
-    case 'hrs':
-    case 'hr':
-    case 'h':
-      return n * h;
-    case 'minutes':
-    case 'minute':
-    case 'mins':
-    case 'min':
-    case 'm':
-      return n * m;
-    case 'seconds':
-    case 'second':
-    case 'secs':
-    case 'sec':
-    case 's':
-      return n * s;
-    case 'milliseconds':
-    case 'millisecond':
-    case 'msecs':
-    case 'msec':
-    case 'ms':
-      return n;
-    default:
-      return undefined;
-  }
-}
-
-/**
- * Short format for `ms`.
- *
- * @param {Number} ms
- * @return {String}
- * @api private
- */
-
-function fmtShort(ms) {
-  var msAbs = Math.abs(ms);
-  if (msAbs >= d) {
-    return Math.round(ms / d) + 'd';
-  }
-  if (msAbs >= h) {
-    return Math.round(ms / h) + 'h';
-  }
-  if (msAbs >= m) {
-    return Math.round(ms / m) + 'm';
-  }
-  if (msAbs >= s) {
-    return Math.round(ms / s) + 's';
-  }
-  return ms + 'ms';
-}
-
-/**
- * Long format for `ms`.
- *
- * @param {Number} ms
- * @return {String}
- * @api private
- */
-
-function fmtLong(ms) {
-  var msAbs = Math.abs(ms);
-  if (msAbs >= d) {
-    return plural(ms, msAbs, d, 'day');
-  }
-  if (msAbs >= h) {
-    return plural(ms, msAbs, h, 'hour');
-  }
-  if (msAbs >= m) {
-    return plural(ms, msAbs, m, 'minute');
-  }
-  if (msAbs >= s) {
-    return plural(ms, msAbs, s, 'second');
-  }
-  return ms + ' ms';
-}
-
-/**
- * Pluralization helper.
- */
-
-function plural(ms, msAbs, n, name) {
-  var isPlural = msAbs >= n * 1.5;
-  return Math.round(ms / n) + ' ' + name + (isPlural ? 's' : '');
-}
-
-
-/***/ }),
-
-/***/ 9851:
-/***/ ((module, exports, __nccwpck_require__) => {
-
-/* eslint-env browser */
-
-/**
- * This is the web browser implementation of `debug()`.
- */
-
-exports.formatArgs = formatArgs;
-exports.save = save;
-exports.load = load;
-exports.useColors = useColors;
-exports.storage = localstorage();
-exports.destroy = (() => {
-	let warned = false;
-
-	return () => {
-		if (!warned) {
-			warned = true;
-			console.warn('Instance method `debug.destroy()` is deprecated and no longer does anything. It will be removed in the next major version of `debug`.');
-		}
-	};
-})();
-
-/**
- * Colors.
- */
-
-exports.colors = [
-	'#0000CC',
-	'#0000FF',
-	'#0033CC',
-	'#0033FF',
-	'#0066CC',
-	'#0066FF',
-	'#0099CC',
-	'#0099FF',
-	'#00CC00',
-	'#00CC33',
-	'#00CC66',
-	'#00CC99',
-	'#00CCCC',
-	'#00CCFF',
-	'#3300CC',
-	'#3300FF',
-	'#3333CC',
-	'#3333FF',
-	'#3366CC',
-	'#3366FF',
-	'#3399CC',
-	'#3399FF',
-	'#33CC00',
-	'#33CC33',
-	'#33CC66',
-	'#33CC99',
-	'#33CCCC',
-	'#33CCFF',
-	'#6600CC',
-	'#6600FF',
-	'#6633CC',
-	'#6633FF',
-	'#66CC00',
-	'#66CC33',
-	'#9900CC',
-	'#9900FF',
-	'#9933CC',
-	'#9933FF',
-	'#99CC00',
-	'#99CC33',
-	'#CC0000',
-	'#CC0033',
-	'#CC0066',
-	'#CC0099',
-	'#CC00CC',
-	'#CC00FF',
-	'#CC3300',
-	'#CC3333',
-	'#CC3366',
-	'#CC3399',
-	'#CC33CC',
-	'#CC33FF',
-	'#CC6600',
-	'#CC6633',
-	'#CC9900',
-	'#CC9933',
-	'#CCCC00',
-	'#CCCC33',
-	'#FF0000',
-	'#FF0033',
-	'#FF0066',
-	'#FF0099',
-	'#FF00CC',
-	'#FF00FF',
-	'#FF3300',
-	'#FF3333',
-	'#FF3366',
-	'#FF3399',
-	'#FF33CC',
-	'#FF33FF',
-	'#FF6600',
-	'#FF6633',
-	'#FF9900',
-	'#FF9933',
-	'#FFCC00',
-	'#FFCC33'
-];
-
-/**
- * Currently only WebKit-based Web Inspectors, Firefox >= v31,
- * and the Firebug extension (any Firefox version) are known
- * to support "%c" CSS customizations.
- *
- * TODO: add a `localStorage` variable to explicitly enable/disable colors
- */
-
-// eslint-disable-next-line complexity
-function useColors() {
-	// NB: In an Electron preload script, document will be defined but not fully
-	// initialized. Since we know we're in Chrome, we'll just detect this case
-	// explicitly
-	if (typeof window !== 'undefined' && window.process && (window.process.type === 'renderer' || window.process.__nwjs)) {
-		return true;
-	}
-
-	// Internet Explorer and Edge do not support colors.
-	if (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/(edge|trident)\/(\d+)/)) {
-		return false;
-	}
-
-	// Is webkit? http://stackoverflow.com/a/16459606/376773
-	// document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
-	return (typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.WebkitAppearance) ||
-		// Is firebug? http://stackoverflow.com/a/398120/376773
-		(typeof window !== 'undefined' && window.console && (window.console.firebug || (window.console.exception && window.console.table))) ||
-		// Is firefox >= v31?
-		// https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
-		(typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31) ||
-		// Double check webkit in userAgent just in case we are in a worker
-		(typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/));
-}
-
-/**
- * Colorize log arguments if enabled.
- *
- * @api public
- */
-
-function formatArgs(args) {
-	args[0] = (this.useColors ? '%c' : '') +
-		this.namespace +
-		(this.useColors ? ' %c' : ' ') +
-		args[0] +
-		(this.useColors ? '%c ' : ' ') +
-		'+' + module.exports.humanize(this.diff);
-
-	if (!this.useColors) {
-		return;
-	}
-
-	const c = 'color: ' + this.color;
-	args.splice(1, 0, c, 'color: inherit');
-
-	// The final "%c" is somewhat tricky, because there could be other
-	// arguments passed either before or after the %c, so we need to
-	// figure out the correct index to insert the CSS into
-	let index = 0;
-	let lastC = 0;
-	args[0].replace(/%[a-zA-Z%]/g, match => {
-		if (match === '%%') {
-			return;
-		}
-		index++;
-		if (match === '%c') {
-			// We only are interested in the *last* %c
-			// (the user may have provided their own)
-			lastC = index;
-		}
-	});
-
-	args.splice(lastC, 0, c);
-}
-
-/**
- * Invokes `console.debug()` when available.
- * No-op when `console.debug` is not a "function".
- * If `console.debug` is not available, falls back
- * to `console.log`.
- *
- * @api public
- */
-exports.log = console.debug || console.log || (() => {});
-
-/**
- * Save `namespaces`.
- *
- * @param {String} namespaces
- * @api private
- */
-function save(namespaces) {
-	try {
-		if (namespaces) {
-			exports.storage.setItem('debug', namespaces);
-		} else {
-			exports.storage.removeItem('debug');
-		}
-	} catch (error) {
-		// Swallow
-		// XXX (@Qix-) should we be logging these?
-	}
-}
-
-/**
- * Load `namespaces`.
- *
- * @return {String} returns the previously persisted debug modes
- * @api private
- */
-function load() {
-	let r;
-	try {
-		r = exports.storage.getItem('debug');
-	} catch (error) {
-		// Swallow
-		// XXX (@Qix-) should we be logging these?
-	}
-
-	// If debug isn't set in LS, and we're in Electron, try to load $DEBUG
-	if (!r && typeof process !== 'undefined' && 'env' in process) {
-		r = process.env.DEBUG;
-	}
-
-	return r;
-}
-
-/**
- * Localstorage attempts to return the localstorage.
- *
- * This is necessary because safari throws
- * when a user disables cookies/localstorage
- * and you attempt to access it.
- *
- * @return {LocalStorage}
- * @api private
- */
-
-function localstorage() {
-	try {
-		// TVMLKit (Apple TV JS Runtime) does not have a window object, just localStorage in the global context
-		// The Browser also has localStorage in the global context.
-		return localStorage;
-	} catch (error) {
-		// Swallow
-		// XXX (@Qix-) should we be logging these?
-	}
-}
-
-module.exports = __nccwpck_require__(6033)(exports);
-
-const {formatters} = module.exports;
-
-/**
- * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
- */
-
-formatters.j = function (v) {
-	try {
-		return JSON.stringify(v);
-	} catch (error) {
-		return '[UnexpectedJSONParseError]: ' + error.message;
-	}
-};
-
-
-/***/ }),
-
-/***/ 6033:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-
-/**
- * This is the common logic for both the Node.js and web browser
- * implementations of `debug()`.
- */
-
-function setup(env) {
-	createDebug.debug = createDebug;
-	createDebug.default = createDebug;
-	createDebug.coerce = coerce;
-	createDebug.disable = disable;
-	createDebug.enable = enable;
-	createDebug.enabled = enabled;
-	createDebug.humanize = __nccwpck_require__(5535);
-	createDebug.destroy = destroy;
-
-	Object.keys(env).forEach(key => {
-		createDebug[key] = env[key];
-	});
-
-	/**
-	* The currently active debug mode names, and names to skip.
-	*/
-
-	createDebug.names = [];
-	createDebug.skips = [];
-
-	/**
-	* Map of special "%n" handling functions, for the debug "format" argument.
-	*
-	* Valid key names are a single, lower or upper-case letter, i.e. "n" and "N".
-	*/
-	createDebug.formatters = {};
-
-	/**
-	* Selects a color for a debug namespace
-	* @param {String} namespace The namespace string for the debug instance to be colored
-	* @return {Number|String} An ANSI color code for the given namespace
-	* @api private
-	*/
-	function selectColor(namespace) {
-		let hash = 0;
-
-		for (let i = 0; i < namespace.length; i++) {
-			hash = ((hash << 5) - hash) + namespace.charCodeAt(i);
-			hash |= 0; // Convert to 32bit integer
-		}
-
-		return createDebug.colors[Math.abs(hash) % createDebug.colors.length];
-	}
-	createDebug.selectColor = selectColor;
-
-	/**
-	* Create a debugger with the given `namespace`.
-	*
-	* @param {String} namespace
-	* @return {Function}
-	* @api public
-	*/
-	function createDebug(namespace) {
-		let prevTime;
-		let enableOverride = null;
-		let namespacesCache;
-		let enabledCache;
-
-		function debug(...args) {
-			// Disabled?
-			if (!debug.enabled) {
-				return;
-			}
-
-			const self = debug;
-
-			// Set `diff` timestamp
-			const curr = Number(new Date());
-			const ms = curr - (prevTime || curr);
-			self.diff = ms;
-			self.prev = prevTime;
-			self.curr = curr;
-			prevTime = curr;
-
-			args[0] = createDebug.coerce(args[0]);
-
-			if (typeof args[0] !== 'string') {
-				// Anything else let's inspect with %O
-				args.unshift('%O');
-			}
-
-			// Apply any `formatters` transformations
-			let index = 0;
-			args[0] = args[0].replace(/%([a-zA-Z%])/g, (match, format) => {
-				// If we encounter an escaped % then don't increase the array index
-				if (match === '%%') {
-					return '%';
-				}
-				index++;
-				const formatter = createDebug.formatters[format];
-				if (typeof formatter === 'function') {
-					const val = args[index];
-					match = formatter.call(self, val);
-
-					// Now we need to remove `args[index]` since it's inlined in the `format`
-					args.splice(index, 1);
-					index--;
-				}
-				return match;
-			});
-
-			// Apply env-specific formatting (colors, etc.)
-			createDebug.formatArgs.call(self, args);
-
-			const logFn = self.log || createDebug.log;
-			logFn.apply(self, args);
-		}
-
-		debug.namespace = namespace;
-		debug.useColors = createDebug.useColors();
-		debug.color = createDebug.selectColor(namespace);
-		debug.extend = extend;
-		debug.destroy = createDebug.destroy; // XXX Temporary. Will be removed in the next major release.
-
-		Object.defineProperty(debug, 'enabled', {
-			enumerable: true,
-			configurable: false,
-			get: () => {
-				if (enableOverride !== null) {
-					return enableOverride;
-				}
-				if (namespacesCache !== createDebug.namespaces) {
-					namespacesCache = createDebug.namespaces;
-					enabledCache = createDebug.enabled(namespace);
-				}
-
-				return enabledCache;
-			},
-			set: v => {
-				enableOverride = v;
-			}
-		});
-
-		// Env-specific initialization logic for debug instances
-		if (typeof createDebug.init === 'function') {
-			createDebug.init(debug);
-		}
-
-		return debug;
-	}
-
-	function extend(namespace, delimiter) {
-		const newDebug = createDebug(this.namespace + (typeof delimiter === 'undefined' ? ':' : delimiter) + namespace);
-		newDebug.log = this.log;
-		return newDebug;
-	}
-
-	/**
-	* Enables a debug mode by namespaces. This can include modes
-	* separated by a colon and wildcards.
-	*
-	* @param {String} namespaces
-	* @api public
-	*/
-	function enable(namespaces) {
-		createDebug.save(namespaces);
-		createDebug.namespaces = namespaces;
-
-		createDebug.names = [];
-		createDebug.skips = [];
-
-		let i;
-		const split = (typeof namespaces === 'string' ? namespaces : '').split(/[\s,]+/);
-		const len = split.length;
-
-		for (i = 0; i < len; i++) {
-			if (!split[i]) {
-				// ignore empty strings
-				continue;
-			}
-
-			namespaces = split[i].replace(/\*/g, '.*?');
-
-			if (namespaces[0] === '-') {
-				createDebug.skips.push(new RegExp('^' + namespaces.slice(1) + '$'));
-			} else {
-				createDebug.names.push(new RegExp('^' + namespaces + '$'));
-			}
-		}
-	}
-
-	/**
-	* Disable debug output.
-	*
-	* @return {String} namespaces
-	* @api public
-	*/
-	function disable() {
-		const namespaces = [
-			...createDebug.names.map(toNamespace),
-			...createDebug.skips.map(toNamespace).map(namespace => '-' + namespace)
-		].join(',');
-		createDebug.enable('');
-		return namespaces;
-	}
-
-	/**
-	* Returns true if the given mode name is enabled, false otherwise.
-	*
-	* @param {String} name
-	* @return {Boolean}
-	* @api public
-	*/
-	function enabled(name) {
-		if (name[name.length - 1] === '*') {
-			return true;
-		}
-
-		let i;
-		let len;
-
-		for (i = 0, len = createDebug.skips.length; i < len; i++) {
-			if (createDebug.skips[i].test(name)) {
-				return false;
-			}
-		}
-
-		for (i = 0, len = createDebug.names.length; i < len; i++) {
-			if (createDebug.names[i].test(name)) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	/**
-	* Convert regexp to namespace
-	*
-	* @param {RegExp} regxep
-	* @return {String} namespace
-	* @api private
-	*/
-	function toNamespace(regexp) {
-		return regexp.toString()
-			.substring(2, regexp.toString().length - 2)
-			.replace(/\.\*\?$/, '*');
-	}
-
-	/**
-	* Coerce `val`.
-	*
-	* @param {Mixed} val
-	* @return {Mixed}
-	* @api private
-	*/
-	function coerce(val) {
-		if (val instanceof Error) {
-			return val.stack || val.message;
-		}
-		return val;
-	}
-
-	/**
-	* XXX DO NOT USE. This is a temporary stub function.
-	* XXX It WILL be removed in the next major release.
-	*/
-	function destroy() {
-		console.warn('Instance method `debug.destroy()` is deprecated and no longer does anything. It will be removed in the next major version of `debug`.');
-	}
-
-	createDebug.enable(createDebug.load());
-
-	return createDebug;
-}
-
-module.exports = setup;
-
-
-/***/ }),
-
-/***/ 7984:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-/**
- * Detect Electron renderer / nwjs process, which is node, but we should
- * treat as a browser.
- */
-
-if (typeof process === 'undefined' || process.type === 'renderer' || process.browser === true || process.__nwjs) {
-	module.exports = __nccwpck_require__(9851);
-} else {
-	module.exports = __nccwpck_require__(3860);
-}
-
-
-/***/ }),
-
-/***/ 3860:
-/***/ ((module, exports, __nccwpck_require__) => {
-
-/**
- * Module dependencies.
- */
-
-const tty = __nccwpck_require__(6224);
-const util = __nccwpck_require__(3837);
-
-/**
- * This is the Node.js implementation of `debug()`.
- */
-
-exports.init = init;
-exports.log = log;
-exports.formatArgs = formatArgs;
-exports.save = save;
-exports.load = load;
-exports.useColors = useColors;
-exports.destroy = util.deprecate(
-	() => {},
-	'Instance method `debug.destroy()` is deprecated and no longer does anything. It will be removed in the next major version of `debug`.'
-);
-
-/**
- * Colors.
- */
-
-exports.colors = [6, 2, 3, 4, 5, 1];
-
-try {
-	// Optional dependency (as in, doesn't need to be installed, NOT like optionalDependencies in package.json)
-	// eslint-disable-next-line import/no-extraneous-dependencies
-	const supportsColor = __nccwpck_require__(395);
-
-	if (supportsColor && (supportsColor.stderr || supportsColor).level >= 2) {
-		exports.colors = [
-			20,
-			21,
-			26,
-			27,
-			32,
-			33,
-			38,
-			39,
-			40,
-			41,
-			42,
-			43,
-			44,
-			45,
-			56,
-			57,
-			62,
-			63,
-			68,
-			69,
-			74,
-			75,
-			76,
-			77,
-			78,
-			79,
-			80,
-			81,
-			92,
-			93,
-			98,
-			99,
-			112,
-			113,
-			128,
-			129,
-			134,
-			135,
-			148,
-			149,
-			160,
-			161,
-			162,
-			163,
-			164,
-			165,
-			166,
-			167,
-			168,
-			169,
-			170,
-			171,
-			172,
-			173,
-			178,
-			179,
-			184,
-			185,
-			196,
-			197,
-			198,
-			199,
-			200,
-			201,
-			202,
-			203,
-			204,
-			205,
-			206,
-			207,
-			208,
-			209,
-			214,
-			215,
-			220,
-			221
-		];
-	}
-} catch (error) {
-	// Swallow - we only care if `supports-color` is available; it doesn't have to be.
-}
-
-/**
- * Build up the default `inspectOpts` object from the environment variables.
- *
- *   $ DEBUG_COLORS=no DEBUG_DEPTH=10 DEBUG_SHOW_HIDDEN=enabled node script.js
- */
-
-exports.inspectOpts = Object.keys(process.env).filter(key => {
-	return /^debug_/i.test(key);
-}).reduce((obj, key) => {
-	// Camel-case
-	const prop = key
-		.substring(6)
-		.toLowerCase()
-		.replace(/_([a-z])/g, (_, k) => {
-			return k.toUpperCase();
-		});
-
-	// Coerce string value into JS value
-	let val = process.env[key];
-	if (/^(yes|on|true|enabled)$/i.test(val)) {
-		val = true;
-	} else if (/^(no|off|false|disabled)$/i.test(val)) {
-		val = false;
-	} else if (val === 'null') {
-		val = null;
-	} else {
-		val = Number(val);
-	}
-
-	obj[prop] = val;
-	return obj;
-}, {});
-
-/**
- * Is stdout a TTY? Colored output is enabled when `true`.
- */
-
-function useColors() {
-	return 'colors' in exports.inspectOpts ?
-		Boolean(exports.inspectOpts.colors) :
-		tty.isatty(process.stderr.fd);
-}
-
-/**
- * Adds ANSI color escape codes if enabled.
- *
- * @api public
- */
-
-function formatArgs(args) {
-	const {namespace: name, useColors} = this;
-
-	if (useColors) {
-		const c = this.color;
-		const colorCode = '\u001B[3' + (c < 8 ? c : '8;5;' + c);
-		const prefix = `  ${colorCode};1m${name} \u001B[0m`;
-
-		args[0] = prefix + args[0].split('\n').join('\n' + prefix);
-		args.push(colorCode + 'm+' + module.exports.humanize(this.diff) + '\u001B[0m');
-	} else {
-		args[0] = getDate() + name + ' ' + args[0];
-	}
-}
-
-function getDate() {
-	if (exports.inspectOpts.hideDate) {
-		return '';
-	}
-	return new Date().toISOString() + ' ';
-}
-
-/**
- * Invokes `util.format()` with the specified arguments and writes to stderr.
- */
-
-function log(...args) {
-	return process.stderr.write(util.format(...args) + '\n');
-}
-
-/**
- * Save `namespaces`.
- *
- * @param {String} namespaces
- * @api private
- */
-function save(namespaces) {
-	if (namespaces) {
-		process.env.DEBUG = namespaces;
-	} else {
-		// If you set a process.env field to null or undefined, it gets cast to the
-		// string 'null' or 'undefined'. Just delete instead.
-		delete process.env.DEBUG;
-	}
-}
-
-/**
- * Load `namespaces`.
- *
- * @return {String} returns the previously persisted debug modes
- * @api private
- */
-
-function load() {
-	return process.env.DEBUG;
-}
-
-/**
- * Init logic for `debug` instances.
- *
- * Create a new `inspectOpts` object in case `useColors` is set
- * differently for a particular `debug` instance.
- */
-
-function init(debug) {
-	debug.inspectOpts = {};
-
-	const keys = Object.keys(exports.inspectOpts);
-	for (let i = 0; i < keys.length; i++) {
-		debug.inspectOpts[keys[i]] = exports.inspectOpts[keys[i]];
-	}
-}
-
-module.exports = __nccwpck_require__(6033)(exports);
-
-const {formatters} = module.exports;
-
-/**
- * Map %o to `util.inspect()`, all on a single line.
- */
-
-formatters.o = function (v) {
-	this.inspectOpts.colors = this.useColors;
-	return util.inspect(v, this.inspectOpts)
-		.split('\n')
-		.map(str => str.trim())
-		.join(' ');
-};
-
-/**
- * Map %O to `util.inspect()`, allowing multiple lines if needed.
- */
-
-formatters.O = function (v) {
-	this.inspectOpts.colors = this.useColors;
-	return util.inspect(v, this.inspectOpts);
-};
+/***/ 2398:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.taskVersion = void 0;
+const taskVersion = '0.1';
+exports.taskVersion = taskVersion;
 
 
 /***/ }),
@@ -39540,6 +39809,178 @@ module.exports = parseParams
 
 /***/ }),
 
+/***/ 3434:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.DEFAULT_OPTIONS = exports.exponentialDelay = exports.isNetworkOrIdempotentRequestError = exports.isIdempotentRequestError = exports.isSafeRequestError = exports.isRetryableError = exports.isNetworkError = exports.namespace = void 0;
+const is_retry_allowed_1 = __importDefault(__nccwpck_require__(7809));
+exports.namespace = 'axios-retry';
+function isNetworkError(error) {
+    const CODE_EXCLUDE_LIST = ['ERR_CANCELED', 'ECONNABORTED'];
+    if (error.response) {
+        return false;
+    }
+    if (!error.code) {
+        return false;
+    }
+    // Prevents retrying timed out & cancelled requests
+    if (CODE_EXCLUDE_LIST.includes(error.code)) {
+        return false;
+    }
+    // Prevents retrying unsafe errors
+    return (0, is_retry_allowed_1.default)(error);
+}
+exports.isNetworkError = isNetworkError;
+const SAFE_HTTP_METHODS = ['get', 'head', 'options'];
+const IDEMPOTENT_HTTP_METHODS = SAFE_HTTP_METHODS.concat(['put', 'delete']);
+function isRetryableError(error) {
+    return (error.code !== 'ECONNABORTED' &&
+        (!error.response || (error.response.status >= 500 && error.response.status <= 599)));
+}
+exports.isRetryableError = isRetryableError;
+function isSafeRequestError(error) {
+    var _a;
+    if (!((_a = error.config) === null || _a === void 0 ? void 0 : _a.method)) {
+        // Cannot determine if the request can be retried
+        return false;
+    }
+    return isRetryableError(error) && SAFE_HTTP_METHODS.indexOf(error.config.method) !== -1;
+}
+exports.isSafeRequestError = isSafeRequestError;
+function isIdempotentRequestError(error) {
+    var _a;
+    if (!((_a = error.config) === null || _a === void 0 ? void 0 : _a.method)) {
+        // Cannot determine if the request can be retried
+        return false;
+    }
+    return isRetryableError(error) && IDEMPOTENT_HTTP_METHODS.indexOf(error.config.method) !== -1;
+}
+exports.isIdempotentRequestError = isIdempotentRequestError;
+function isNetworkOrIdempotentRequestError(error) {
+    return isNetworkError(error) || isIdempotentRequestError(error);
+}
+exports.isNetworkOrIdempotentRequestError = isNetworkOrIdempotentRequestError;
+function noDelay() {
+    return 0;
+}
+function exponentialDelay(retryNumber = 0, _error = undefined, delayFactor = 100) {
+    const delay = Math.pow(2, retryNumber) * delayFactor;
+    const randomSum = delay * 0.2 * Math.random(); // 0-20% of the delay
+    return delay + randomSum;
+}
+exports.exponentialDelay = exponentialDelay;
+exports.DEFAULT_OPTIONS = {
+    retries: 3,
+    retryCondition: isNetworkOrIdempotentRequestError,
+    retryDelay: noDelay,
+    shouldResetTimeout: false,
+    onRetry: () => { }
+};
+function getRequestOptions(config, defaultOptions) {
+    return Object.assign(Object.assign(Object.assign({}, exports.DEFAULT_OPTIONS), defaultOptions), config[exports.namespace]);
+}
+function setCurrentState(config, defaultOptions) {
+    const currentState = getRequestOptions(config, defaultOptions || {});
+    currentState.retryCount = currentState.retryCount || 0;
+    currentState.lastRequestTime = currentState.lastRequestTime || Date.now();
+    config[exports.namespace] = currentState;
+    return currentState;
+}
+function fixConfig(axiosInstance, config) {
+    // @ts-ignore
+    if (axiosInstance.defaults.agent === config.agent) {
+        // @ts-ignore
+        delete config.agent;
+    }
+    if (axiosInstance.defaults.httpAgent === config.httpAgent) {
+        delete config.httpAgent;
+    }
+    if (axiosInstance.defaults.httpsAgent === config.httpsAgent) {
+        delete config.httpsAgent;
+    }
+}
+function shouldRetry(currentState, error) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { retries, retryCondition } = currentState;
+        const shouldRetryOrPromise = (currentState.retryCount || 0) < retries && retryCondition(error);
+        // This could be a promise
+        if (typeof shouldRetryOrPromise === 'object') {
+            try {
+                const shouldRetryPromiseResult = yield shouldRetryOrPromise;
+                // keep return true unless shouldRetryPromiseResult return false for compatibility
+                return shouldRetryPromiseResult !== false;
+            }
+            catch (_err) {
+                return false;
+            }
+        }
+        return shouldRetryOrPromise;
+    });
+}
+const axiosRetry = (axiosInstance, defaultOptions) => {
+    const requestInterceptorId = axiosInstance.interceptors.request.use((config) => {
+        setCurrentState(config, defaultOptions);
+        return config;
+    });
+    const responseInterceptorId = axiosInstance.interceptors.response.use(null, (error) => __awaiter(void 0, void 0, void 0, function* () {
+        const { config } = error;
+        // If we have no information to retry the request
+        if (!config) {
+            return Promise.reject(error);
+        }
+        const currentState = setCurrentState(config, defaultOptions);
+        if (yield shouldRetry(currentState, error)) {
+            currentState.retryCount += 1;
+            const { retryDelay, shouldResetTimeout, onRetry } = currentState;
+            const delay = retryDelay(currentState.retryCount, error);
+            // Axios fails merging this configuration to the default configuration because it has an issue
+            // with circular structures: https://github.com/mzabriskie/axios/issues/370
+            fixConfig(axiosInstance, config);
+            if (!shouldResetTimeout && config.timeout && currentState.lastRequestTime) {
+                const lastRequestDuration = Date.now() - currentState.lastRequestTime;
+                const timeout = config.timeout - lastRequestDuration - delay;
+                if (timeout <= 0) {
+                    return Promise.reject(error);
+                }
+                config.timeout = timeout;
+            }
+            config.transformRequest = [(data) => data];
+            yield onRetry(currentState.retryCount, error, config);
+            return new Promise((resolve) => {
+                setTimeout(() => resolve(axiosInstance(config)), delay);
+            });
+        }
+        return Promise.reject(error);
+    }));
+    return { requestInterceptorId, responseInterceptorId };
+};
+// Compatibility with CommonJS
+axiosRetry.isNetworkError = isNetworkError;
+axiosRetry.isSafeRequestError = isSafeRequestError;
+axiosRetry.isIdempotentRequestError = isIdempotentRequestError;
+axiosRetry.isNetworkOrIdempotentRequestError = isNetworkOrIdempotentRequestError;
+axiosRetry.exponentialDelay = exponentialDelay;
+axiosRetry.isRetryableError = isRetryableError;
+exports["default"] = axiosRetry;
+
+
+/***/ }),
+
 /***/ 3765:
 /***/ ((module) => {
 
@@ -39606,7 +40047,11 @@ var exports = __webpack_exports__;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const task_1 = __nccwpck_require__(4661);
-const task = new task_1.Task();
+const helper_artifact_download_1 = __nccwpck_require__(2198);
+const helper_input_output_1 = __nccwpck_require__(7363);
+const helperInputOutput = new helper_input_output_1.HelperInputOutput();
+const helperArtifactDownload = new helper_artifact_download_1.HelperArtifactDownload(helperInputOutput);
+const task = new task_1.Task(helperInputOutput, helperArtifactDownload);
 task.run();
 
 })();

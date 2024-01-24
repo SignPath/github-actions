@@ -18,14 +18,30 @@ inputs:
   signing-policy-slug:
     description: 'SignPath signing policy slug'
     required: true
+  wait-for-completion-timeout-in-seconds:
+    description: 'Maximum time in seconds that the action will wait for the signing request to complete'
+    default: "600"
+    required: false
+  service-unavailable-timeout-in-seconds:
+    description: 'Total time in seconds that the action will wait for a single service call to succeed (across several retries)'
+    default: "600"
+    required: false
+  download-signed-artifact-timeout-in-seconds:
+    description: 'HTTP timeout when downloading the signed artifact.'
+    default: "300"
+    required: false
   artifact-configuration-slug:
     description: 'SignPath artifact configuration slug'
-    required: true
-  artifact-name:
+    required: false
+  github-artifact-name:
     description: 'Name of the Github Actions artifact'
     required: true
+  wait-for-completion:
+    description: 'If true, the action will wait for the signing request to complete'
+    default: "true"
+    required: false
   output-artifact-directory:
-    description: 'Path where the signed artifact will be saved, if empty then the task will not download the artifact from SignPath'
+    description: 'Path where the signed artifact will be saved. If not specified, the task will not download the artifact from SignPath'
     required: false
   github-token:
     description: 'GitHub access token. Is is recommended to use the default token provided by GitHub: secrets.GITHUB_TOKEN. The required permissions are `actions:read` and `content:read`.'
