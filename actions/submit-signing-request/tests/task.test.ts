@@ -3,14 +3,16 @@ import { Task } from '../task';
 import axios from 'axios';
 import sinon from 'sinon';
 import assert from 'assert';
+import nock from 'nock';
 import * as core from '@actions/core';
 import { HelperInputOutput } from '../helper-input-output';
 import { HelperArtifactDownload } from '../helper-artifact-download';
 
 const testApiToken = 'TEST_TOKEN';
 const testSigningRequestId = 'TEST_ID';
-const testSigningRequestUrl = 'https://domain/api/SigningRequests';
-const testSignedArtifactLink = 'https://domain/api/artifactlink';
+const testConnectorUrl = 'https://domain';
+const testSigningRequestUrl = testConnectorUrl + '/api/SigningRequests';
+const testSignedArtifactLink = testConnectorUrl + '/api/artifactlink';
 const testGitHubArtifactName = 'TEST_ARTIFACT_NAME';
 const testArtifactConfigurationSlug = 'TEST_ARTIFACT_CONFIGURATION_SLUG';
 const testOrganizationId = 'TEST_ORGANIZATION_ID';
@@ -49,6 +51,8 @@ beforeEach(() => {
         switch (paramName) {
             case 'wait-for-completion':
                 return 'true';
+            case 'connector-url':
+                return testConnectorUrl;
             case 'wait-for-completion-timeout-in-seconds':
                 return '60';
             case 'download-signed-artifact-timeout-in-seconds':
@@ -185,4 +189,39 @@ it('task fails if the submit request connector fails', async () => {
         }));
     await task.run();
     assert.equal(setFailedStub.calledOnce, true);
+});
+
+it('if submit signing request fails with 500, the task retries', async () => {
+    // use real axios for this test, because retries are implemented in axios
+    axiosPostStub.restore();
+
+    // fail twice, then succeed
+    nock(testConnectorUrl)
+        .post('/api/sign')
+        .twice()
+        .reply(500, 'Internal Server Error');
+    nock(testConnectorUrl)
+        .post('/api/sign')
+        .twice()
+        .reply(200, {
+            signingRequestUrl: testSigningRequestUrl,
+            signingRequestId: testSigningRequestId,
+            isFinalStatus: true,
+            status: 'Completed',
+            signedArtifactLink: testSignedArtifactLink
+        });
+
+    // we use real axios, so need to mock also a call to get signing request status
+    nock(testConnectorUrl)
+        .get(/SigningRequests/)
+        .reply(200, {
+            status: 'Completed',
+            isFinalStatus: true,
+            signedArtifactLink: testSignedArtifactLink
+        });
+
+    await task.run();
+
+    // signing request id should be set in the output
+    assert.equal(setOutputStub.calledWith('signing-request-id',  testSigningRequestId), true);
 });
