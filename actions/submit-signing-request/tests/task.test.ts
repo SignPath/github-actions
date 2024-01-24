@@ -7,6 +7,7 @@ import nock from 'nock';
 import * as core from '@actions/core';
 import { HelperInputOutput } from '../helper-input-output';
 import { HelperArtifactDownload } from '../helper-artifact-download';
+import axiosRetry from 'axios-retry';
 
 const testApiToken = 'TEST_TOKEN';
 const testSigningRequestId = 'TEST_ID';
@@ -219,6 +220,9 @@ it('if submit signing request fails with 500, the task retries', async () => {
             isFinalStatus: true,
             signedArtifactLink: testSignedArtifactLink
         });
+
+    // disable exponential delay to speed up the test
+    sandbox.stub(axiosRetry, 'exponentialDelay').resolves(0)
 
     await task.run();
 
