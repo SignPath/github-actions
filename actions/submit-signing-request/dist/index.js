@@ -1,6 +1,25 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 3992:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Config = void 0;
+class Config {
+    constructor() {
+        this.MinDelayBetweenSigningRequestStatusChecksInSeconds = 10; // start from 10 sec
+        this.MaxDelayBetweenSigningRequestStatusChecksInSeconds = 60 * 20; // check at least every 30 minutes
+        this.CheckArtifactDownloadStatusIntervalInSeconds = 5;
+    }
+}
+exports.Config = Config;
+
+
+/***/ }),
+
 /***/ 2198:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -37460,17 +37479,16 @@ const url_1 = __importDefault(__nccwpck_require__(7310));
 const utils_1 = __nccwpck_require__(9586);
 const signpath_url_builder_1 = __nccwpck_require__(2139);
 const version_1 = __nccwpck_require__(2398);
-const MinDelayBetweenSigningRequestStatusChecksInSeconds = 10; // start from 10 sec
-const MaxDelayBetweenSigningRequestStatusChecksInSeconds = 60 * 20; // check at least every 30 minutes
 // output variables
 // signingRequestId - the id of the newly created signing request
 // signingRequestWebUrl - the url of the signing request in SignPath
 // signPathApiUrl - the base API url of the SignPath API
 // signingRequestDownloadUrl - the url of the signed artifact in SignPath
 class Task {
-    constructor(helperInputOutput, helperArtifactDownload) {
+    constructor(helperInputOutput, helperArtifactDownload, config) {
         this.helperInputOutput = helperInputOutput;
         this.helperArtifactDownload = helperArtifactDownload;
+        this.config = config;
         this.urlBuilder = new signpath_url_builder_1.SignPathUrlBuilder(this.helperInputOutput.signPathConnectorUrl);
     }
     run() {
@@ -37478,6 +37496,7 @@ class Task {
             this.configureAxios();
             try {
                 const signingRequestId = yield this.submitSigningRequest();
+                yield this.ensureSignPathDownloadedUnsignedArtifact(signingRequestId);
                 if (this.helperInputOutput.waitForCompletion) {
                     const signingRequest = yield this.ensureSigningRequestCompleted(signingRequestId);
                     this.helperInputOutput.setSignedArtifactDownloadUrl(signingRequest.signedArtifactLink);
@@ -37536,26 +37555,40 @@ class Task {
             throw new Error("CI system validation failed.");
         }
     }
+    // if auto-generated GitHub Actions token (secrets.GITHUB_TOKEN) is used for artifact download,
+    // ensure the workflow continues running until the download is complete.
+    // The token is valid only for the workflow's duration
+    ensureSignPathDownloadedUnsignedArtifact(signingRequestId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            core.info(`Wait till SignPath downloads the unsigned artifact...`);
+            const requestData = yield ((0, utils_1.executeWithRetries)(() => __awaiter(this, void 0, void 0, function* () {
+                const signingRequestDto = yield (this.getSigningRequest(signingRequestId)
+                    .then(data => {
+                    console.log(`SignPath download status is ${data.unsignedArtifactLink ? 'completed' : 'not completed'}`);
+                    if (!data.unsignedArtifactLink && !data.isFinalStatus) {
+                        core.info(`SignPath downloading the unsigned GitHub artifact...`);
+                        throw new Error('Retry artifact download status check.');
+                    }
+                    return data;
+                }));
+                return signingRequestDto;
+            }), this.helperInputOutput.waitForCompletionTimeoutInSeconds * 1000, this.config.CheckArtifactDownloadStatusIntervalInSeconds * 1000, this.config.CheckArtifactDownloadStatusIntervalInSeconds * 1000));
+            if (!requestData.unsignedArtifactLink) {
+                const maxWaitingTime = moment.utc(this.helperInputOutput.waitForCompletionTimeoutInSeconds * 1000).format("hh:mm");
+                core.error(`We have exceeded the maximum waiting time, which is ${maxWaitingTime}, and the GitHub artifact is still not downloaded by SignPath`);
+                throw new Error(`The GitHub artifact is not downloaded by SignPath`);
+            }
+            // else continue workflow execution
+            // artifact already downloaded by SignPath
+        });
+    }
     ensureSigningRequestCompleted(signingRequestId) {
         return __awaiter(this, void 0, void 0, function* () {
             // check for status update
             core.info(`Checking the signing request status...`);
             const requestData = yield ((0, utils_1.executeWithRetries)(() => __awaiter(this, void 0, void 0, function* () {
-                const requestStatusUrl = this.urlBuilder.buildGetSigningRequestUrl(this.helperInputOutput.organizationId, signingRequestId);
-                const signingRequestDto = (yield axios_1.default
-                    .get(requestStatusUrl, {
-                    responseType: "json",
-                    headers: {
-                        "Authorization": (0, utils_1.buildSignPathAuthorizationHeader)(this.helperInputOutput.signPathApiToken)
-                    }
-                })
-                    .catch((e) => {
-                    core.error(`SignPath API call error: ${e.message}`);
-                    core.error(`Signing request details API URL is: ${requestStatusUrl}`);
-                    throw new Error((0, utils_1.httpErrorResponseToText)(e));
-                })
-                    .then((response) => {
-                    const data = response.data;
+                const signingRequestDto = yield (this.getSigningRequest(signingRequestId)
+                    .then(data => {
                     if (data && !data.isFinalStatus) {
                         core.info(`The signing request status is ${data.status}, which is not a final status; after a delay, we will check again...`);
                         throw new Error('Retry signing request status check.');
@@ -37563,14 +37596,7 @@ class Task {
                     return data;
                 }));
                 return signingRequestDto;
-            }), this.helperInputOutput.waitForCompletionTimeoutInSeconds * 1000, MinDelayBetweenSigningRequestStatusChecksInSeconds * 1000, MaxDelayBetweenSigningRequestStatusChecksInSeconds * 1000)
-                .catch((e) => {
-                if (e.message.startsWith('{')) {
-                    const errorData = JSON.parse(e.message);
-                    return errorData.data;
-                }
-                throw e;
-            }));
+            }), this.helperInputOutput.waitForCompletionTimeoutInSeconds * 1000, this.config.MinDelayBetweenSigningRequestStatusChecksInSeconds * 1000, this.config.MaxDelayBetweenSigningRequestStatusChecksInSeconds * 1000));
             core.info(`Signing request status is ${requestData.status}`);
             if (!requestData.isFinalStatus) {
                 const maxWaitingTime = moment.utc(this.helperInputOutput.waitForCompletionTimeoutInSeconds * 1000).format("hh:mm");
@@ -37583,6 +37609,25 @@ class Task {
                 }
             }
             return requestData;
+        });
+    }
+    getSigningRequest(signingRequestId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const requestStatusUrl = this.urlBuilder.buildGetSigningRequestUrl(this.helperInputOutput.organizationId, signingRequestId);
+            const signingRequestDto = yield axios_1.default
+                .get(requestStatusUrl, {
+                responseType: "json",
+                headers: {
+                    "Authorization": (0, utils_1.buildSignPathAuthorizationHeader)(this.helperInputOutput.signPathApiToken)
+                }
+            })
+                .catch((e) => {
+                core.error(`SignPath API call error: ${e.message}`);
+                core.error(`Signing request details API URL is: ${requestStatusUrl}`);
+                throw new Error((0, utils_1.httpErrorResponseToText)(e));
+            })
+                .then(response => response.data);
+            return signingRequestDto;
         });
     }
     configureAxios() {
@@ -40049,9 +40094,11 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const task_1 = __nccwpck_require__(4661);
 const helper_artifact_download_1 = __nccwpck_require__(2198);
 const helper_input_output_1 = __nccwpck_require__(7363);
+const config_1 = __nccwpck_require__(3992);
 const helperInputOutput = new helper_input_output_1.HelperInputOutput();
 const helperArtifactDownload = new helper_artifact_download_1.HelperArtifactDownload(helperInputOutput);
-const task = new task_1.Task(helperInputOutput, helperArtifactDownload);
+const config = new config_1.Config();
+const task = new task_1.Task(helperInputOutput, helperArtifactDownload, config);
 task.run();
 
 })();

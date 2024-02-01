@@ -5,4 +5,5 @@ export interface SigningRequestDto
   signedArtifactLink: string;
   projectSlug: string;
   isFinalStatus: boolean;
+  unsignedArtifactLink: string;
 }
