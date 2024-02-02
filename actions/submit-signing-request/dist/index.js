@@ -37496,13 +37496,15 @@ class Task {
             this.configureAxios();
             try {
                 const signingRequestId = yield this.submitSigningRequest();
-                yield this.ensureSignPathDownloadedUnsignedArtifact(signingRequestId);
                 if (this.helperInputOutput.waitForCompletion) {
                     const signingRequest = yield this.ensureSigningRequestCompleted(signingRequestId);
                     this.helperInputOutput.setSignedArtifactDownloadUrl(signingRequest.signedArtifactLink);
                     if (this.helperInputOutput.outputArtifactDirectory) {
                         yield this.helperArtifactDownload.downloadSignedArtifact(signingRequest.signedArtifactLink);
                     }
+                }
+                else {
+                    yield this.ensureSignPathDownloadedUnsignedArtifact(signingRequestId);
                 }
             }
             catch (err) {

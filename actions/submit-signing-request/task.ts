@@ -35,7 +35,6 @@ export class Task {
 
         try {
             const signingRequestId = await this.submitSigningRequest();
-            await this.ensureSignPathDownloadedUnsignedArtifact(signingRequestId);
 
             if (this.helperInputOutput.waitForCompletion) {
                 const signingRequest = await this.ensureSigningRequestCompleted(signingRequestId);
@@ -44,6 +43,9 @@ export class Task {
                 if(this.helperInputOutput.outputArtifactDirectory) {
                     await this.helperArtifactDownload.downloadSignedArtifact(signingRequest.signedArtifactLink);
                 }
+            }
+            else {
+                await this.ensureSignPathDownloadedUnsignedArtifact(signingRequestId);
             }
         }
         catch (err) {
