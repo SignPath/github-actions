@@ -272,3 +272,30 @@ it('task waits for artifact being downloaded before completing', async () => {
     assert.equal(setFailedStub.called, false);
     assert.equal(notDoneScope.isDone(), false);
 });
+
+it('if the signing request status is final, the task stops checking for artifact download status and reports an error', async () => {
+
+    // use non stubbed axius, define responses sequence suing nock
+    axiosGetStub.restore();
+
+    // non-default input map, with 'wait-for-completion' set to 'false'
+    getInputStub.restore();
+    const input = Object.assign({ }, defaultTestInputMap);
+    input['wait-for-completion'] = 'false';
+    getInputStub = sandbox.stub(core, 'getInput').callsFake((paramName) => {
+        return input[paramName as keyof typeof input] || 'test';
+    });
+
+    // signing request status is final and artifact is not downloaded
+    // something went wrong, the sining request cannot be completed
+    nock(testSignPathUrl).get(uri => uri.includes('SigningRequests')).once().reply(200, {
+        unsignedArtifactLink: null,
+        isFinalStatus: true
+    });
+
+    const setFailedStub = sandbox.stub(core, 'setFailed');
+    await task.run();
+
+    // and successfully completed
+    assert.equal(setFailedStub.called, true);
+});

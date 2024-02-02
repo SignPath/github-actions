@@ -37576,8 +37576,13 @@ class Task {
                 return signingRequestDto;
             }), this.helperInputOutput.waitForCompletionTimeoutInSeconds * 1000, this.config.CheckArtifactDownloadStatusIntervalInSeconds * 1000, this.config.CheckArtifactDownloadStatusIntervalInSeconds * 1000));
             if (!requestData.unsignedArtifactLink) {
-                const maxWaitingTime = moment.utc(this.helperInputOutput.waitForCompletionTimeoutInSeconds * 1000).format("hh:mm");
-                core.error(`We have exceeded the maximum waiting time, which is ${maxWaitingTime}, and the GitHub artifact is still not downloaded by SignPath`);
+                if (!requestData.isFinalStatus) {
+                    const maxWaitingTime = moment.utc(this.helperInputOutput.waitForCompletionTimeoutInSeconds * 1000).format("hh:mm");
+                    core.error(`We have exceeded the maximum waiting time, which is ${maxWaitingTime}, and the GitHub artifact is still not downloaded by SignPath`);
+                }
+                else {
+                    core.error(`The signing request is in its final state, but the GitHub artifact has not been downloaded by SignPath.`);
+                }
                 throw new Error(`The GitHub artifact is not downloaded by SignPath`);
             }
             else {
