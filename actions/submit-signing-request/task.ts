@@ -122,9 +122,8 @@ export class Task {
             async () => {
                 const signingRequestDto = await (this.getSigningRequest(signingRequestId)
                     .then(data => {
-                        console.log(`SignPath download status is ${data.unsignedArtifactLink ? 'completed' : 'not completed'}`);
                         if(!data.unsignedArtifactLink  && !data.isFinalStatus) {
-                            core.info(`SignPath downloading the unsigned GitHub artifact...`);
+                            core.info(`The unsigned GitHub artifact is not yet downloaded by SignPath...`);
                             throw new Error('Retry artifact download status check.');
                         }
                         return data;

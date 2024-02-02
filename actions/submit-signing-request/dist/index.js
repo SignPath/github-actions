@@ -37564,9 +37564,8 @@ class Task {
             const requestData = yield ((0, utils_1.executeWithRetries)(() => __awaiter(this, void 0, void 0, function* () {
                 const signingRequestDto = yield (this.getSigningRequest(signingRequestId)
                     .then(data => {
-                    console.log(`SignPath download status is ${data.unsignedArtifactLink ? 'completed' : 'not completed'}`);
                     if (!data.unsignedArtifactLink && !data.isFinalStatus) {
-                        core.info(`SignPath downloading the unsigned GitHub artifact...`);
+                        core.info(`The unsigned GitHub artifact is not yet downloaded by SignPath...`);
                         throw new Error('Retry artifact download status check.');
                     }
                     return data;
