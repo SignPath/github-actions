@@ -139,6 +139,9 @@ export class Task {
             core.error(`We have exceeded the maximum waiting time, which is ${maxWaitingTime}, and the GitHub artifact is still not downloaded by SignPath`);
             throw new Error(`The GitHub artifact is not downloaded by SignPath`);
         }
+        else {
+            core.info(`The unsigned GitHub artifact has been successfully downloaded by SignPath`);
+        }
         // else continue workflow execution
         // artifact already downloaded by SignPath
     }
