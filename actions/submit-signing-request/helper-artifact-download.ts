@@ -28,6 +28,7 @@ export class HelperArtifactDownload {
 
         core.info(`The signed artifact is being downloaded from SignPath and will be saved to ${targetDirectory}`);
 
+        core.info(`Going to download signed artifact`);
         const rootTmpDir = process.env.RUNNER_TEMP;
         const tmpDir = fs.mkdtempSync(`${rootTmpDir}${path.sep}`);
         core.debug(`Created temp directory ${tmpDir}`);

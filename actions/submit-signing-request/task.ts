@@ -119,13 +119,13 @@ export class Task {
     // ensure the workflow continues running until the download is complete.
     // The token is valid only for the workflow's duration
     private async ensureSignPathDownloadedUnsignedArtifact(signingRequestId: string): Promise<void> {
-        core.info(`Wait till SignPath downloads the unsigned artifact...`);
+        core.info(`Waiting until SignPath downloaded the unsigned artifact...`);
         const requestData = await (executeWithRetries<SigningRequestDto>(
             async () => {
                 const signingRequestDto = await (this.getSigningRequest(signingRequestId)
                     .then(data => {
                         if(!data.unsignedArtifactLink  && !data.isFinalStatus) {
-                            core.info(`The unsigned GitHub artifact is not yet downloaded by SignPath...`);
+                            core.info(`Checking the download status: not yet complete`);
                             throw new Error('Retry artifact download status check.');
                         }
                         return data;

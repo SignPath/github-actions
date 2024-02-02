@@ -87,6 +87,7 @@ class HelperArtifactDownload {
             });
             const targetDirectory = this.resolveOrCreateDirectory(this.helperInputOutput.outputArtifactDirectory);
             core.info(`The signed artifact is being downloaded from SignPath and will be saved to ${targetDirectory}`);
+            core.info(`Going to download signed artifact`);
             const rootTmpDir = process.env.RUNNER_TEMP;
             const tmpDir = fs.mkdtempSync(`${rootTmpDir}${path.sep}`);
             core.debug(`Created temp directory ${tmpDir}`);
@@ -37562,12 +37563,12 @@ class Task {
     // The token is valid only for the workflow's duration
     ensureSignPathDownloadedUnsignedArtifact(signingRequestId) {
         return __awaiter(this, void 0, void 0, function* () {
-            core.info(`Wait till SignPath downloads the unsigned artifact...`);
+            core.info(`Waiting until SignPath downloaded the unsigned artifact...`);
             const requestData = yield ((0, utils_1.executeWithRetries)(() => __awaiter(this, void 0, void 0, function* () {
                 const signingRequestDto = yield (this.getSigningRequest(signingRequestId)
                     .then(data => {
                     if (!data.unsignedArtifactLink && !data.isFinalStatus) {
-                        core.info(`The unsigned GitHub artifact is not yet downloaded by SignPath...`);
+                        core.info(`Checking the download status: not yet complete`);
                         throw new Error('Retry artifact download status check.');
                     }
                     return data;
