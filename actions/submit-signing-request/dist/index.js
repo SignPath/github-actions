@@ -37569,9 +37569,10 @@ class Task {
                     .then(data => {
                     if (!data.unsignedArtifactLink && !data.isFinalStatus) {
                         core.info(`Checking the download status: not yet complete`);
-                        throw new Error('Retry artifact download status check.');
+                        // retry artifact download status check
+                        return { retry: true };
                     }
-                    return data;
+                    return { retry: false, result: data };
                 }));
                 return signingRequestDto;
             }), this.helperInputOutput.waitForCompletionTimeoutInSeconds * 1000, this.config.CheckArtifactDownloadStatusIntervalInSeconds * 1000, this.config.CheckArtifactDownloadStatusIntervalInSeconds * 1000));
@@ -37601,9 +37602,9 @@ class Task {
                     .then(data => {
                     if (data && !data.isFinalStatus) {
                         core.info(`The signing request status is ${data.status}, which is not a final status; after a delay, we will check again...`);
-                        throw new Error('Retry signing request status check.');
+                        return { retry: true };
                     }
-                    return data;
+                    return { retry: false, result: data };
                 }));
                 return signingRequestDto;
             }), this.helperInputOutput.waitForCompletionTimeoutInSeconds * 1000, this.config.MinDelayBetweenSigningRequestStatusChecksInSeconds * 1000, this.config.MaxDelayBetweenSigningRequestStatusChecksInSeconds * 1000));
@@ -37763,32 +37764,27 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.httpErrorResponseToText = exports.buildSignPathAuthorizationHeader = exports.getInputNumber = exports.executeWithRetries = void 0;
 const moment = __importStar(__nccwpck_require__(7393));
 const core = __importStar(__nccwpck_require__(8163));
-/// function that retries promise calls with delays
-/// the delays are incremental and are calculated as follows:
-/// 1. start with minDelay
-/// 2. double the delay on each iteration
-/// 3. stop when maxTotalWaitingTimeMs is reached
-/// 4. if maxDelayMs is reached, use it for all subsequent calls
 function executeWithRetries(promise, maxTotalWaitingTimeMs, minDelayMs, maxDelayMs) {
     return __awaiter(this, void 0, void 0, function* () {
         const startTime = Date.now();
         let delayMs = minDelayMs;
         let result;
         while (true) {
-            try {
-                result = yield promise();
+            result = yield promise();
+            if (result.retry === false) {
                 break;
             }
-            catch (err) {
+            else {
                 if (Date.now() - startTime > maxTotalWaitingTimeMs) {
-                    throw err;
+                    const maxWaitingTime = moment.utc(Date.now() - startTime).format("hh:mm");
+                    throw new Error(result.retryReason || `The operation has timed out after ${maxWaitingTime}`);
                 }
                 core.info(`Next check in ${moment.duration(delayMs).humanize()}`);
                 yield new Promise(resolve => setTimeout(resolve, delayMs));
                 delayMs = Math.min(delayMs * 2, maxDelayMs);
             }
         }
-        return result;
+        return result.result;
     });
 }
 exports.executeWithRetries = executeWithRetries;

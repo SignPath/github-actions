@@ -5,7 +5,7 @@ import * as moment from 'moment';
 import url from 'url';
 
 import { SubmitSigningRequestResult, ValidationResult } from './dtos/submit-signing-request-result';
-import { buildSignPathAuthorizationHeader, executeWithRetries, httpErrorResponseToText } from './utils';
+import { ExecuteWithRetriesResult, buildSignPathAuthorizationHeader, executeWithRetries, httpErrorResponseToText } from './utils';
 import { SignPathUrlBuilder } from './signpath-url-builder';
 import { SigningRequestDto } from './dtos/signing-request';
 import { HelperInputOutput } from './helper-input-output';
@@ -126,9 +126,10 @@ export class Task {
                     .then(data => {
                         if(!data.unsignedArtifactLink  && !data.isFinalStatus) {
                             core.info(`Checking the download status: not yet complete`);
-                            throw new Error('Retry artifact download status check.');
+                            // retry artifact download status check
+                            return { retry: true };
                         }
-                        return data;
+                        return { retry: false, result: data };
                     }));
                 return signingRequestDto;
             },
@@ -163,9 +164,9 @@ export class Task {
                     .then(data => {
                         if(data && !data.isFinalStatus) {
                             core.info(`The signing request status is ${data.status}, which is not a final status; after a delay, we will check again...`);
-                            throw new Error('Retry signing request status check.');
+                            return { retry: true };
                         }
-                        return data;
+                        return { retry: false, result: data };
                     }));
                 return signingRequestDto;
             },
