@@ -37406,17 +37406,18 @@ exports.SignPathUrlBuilder = void 0;
 class SignPathUrlBuilder {
     constructor(signPathGitHubConnectorBaseUrl) {
         this.signPathGitHubConnectorBaseUrl = signPathGitHubConnectorBaseUrl;
-        this.signPathBaseUrl = 'https://signpath.io';
+        this.signPathApiBaseUrl = 'https://signpath.io/Api';
         this.signPathGitHubConnectorBaseUrl = this.trimSlash(this.signPathGitHubConnectorBaseUrl);
     }
     buildSubmitSigningRequestUrl() {
         return this.signPathGitHubConnectorBaseUrl + '/api/sign';
     }
     buildGetSigningRequestUrl(organizationId, signingRequestId) {
-        if (!this.signPathBaseUrl) {
+        if (!this.signPathApiBaseUrl) {
+            console.error('SignPath Base Url is not set');
             throw new Error('SignPath Base Url is not set');
         }
-        return this.signPathBaseUrl + `/API/v1/${encodeURIComponent(organizationId)}/SigningRequests/${encodeURIComponent(signingRequestId)}`;
+        return this.signPathApiBaseUrl + `/v1/${encodeURIComponent(organizationId)}/SigningRequests/${encodeURIComponent(signingRequestId)}`;
     }
     trimSlash(text) {
         if (text && text[text.length - 1] === '/') {
@@ -37476,7 +37477,6 @@ const axios_1 = __importDefault(__nccwpck_require__(948));
 const axios_retry_1 = __importDefault(__nccwpck_require__(3434));
 const core = __importStar(__nccwpck_require__(8163));
 const moment = __importStar(__nccwpck_require__(7393));
-const url_1 = __importDefault(__nccwpck_require__(7310));
 const utils_1 = __nccwpck_require__(9586);
 const signpath_url_builder_1 = __nccwpck_require__(2139);
 const version_1 = __nccwpck_require__(2398);
@@ -37532,14 +37532,13 @@ class Task {
             }
             this.checkResponseStructure(response);
             this.checkCiSystemValidationResult(response.validationResult);
-            const signingRequestUrlObj = url_1.default.parse(response.signingRequestUrl);
-            this.urlBuilder.signPathBaseUrl = signingRequestUrlObj.protocol + '//' + signingRequestUrlObj.host;
+            this.urlBuilder.signPathApiBaseUrl = response.signPathApiBaseUrl;
             core.info(`SignPath signing request has been successfully submitted`);
             core.info(`The signing request id is ${response.signingRequestId}`);
             core.info(`You can view the signing request here: ${response.signingRequestUrl}`);
             this.helperInputOutput.setSigningRequestId(response.signingRequestId);
             this.helperInputOutput.setSigningRequestWebUrl(response.signingRequestUrl);
-            this.helperInputOutput.setSignPathApiUrl(this.urlBuilder.signPathBaseUrl + '/API');
+            this.helperInputOutput.setSignPathApiUrl(this.urlBuilder.signPathApiBaseUrl);
             return response.signingRequestId;
         });
     }

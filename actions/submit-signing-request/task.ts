@@ -2,7 +2,6 @@ import axios, { AxiosError } from 'axios';
 import axiosRetry from 'axios-retry';
 import * as core from '@actions/core';
 import * as moment from 'moment';
-import url from 'url';
 
 import { SubmitSigningRequestResult, ValidationResult } from './dtos/submit-signing-request-result';
 import { ExecuteWithRetriesResult, buildSignPathAuthorizationHeader, executeWithRetries, httpErrorResponseToText } from './utils';
@@ -79,8 +78,7 @@ export class Task {
         this.checkResponseStructure(response);
         this.checkCiSystemValidationResult(response.validationResult);
 
-        const signingRequestUrlObj  = url.parse(response.signingRequestUrl);
-        this.urlBuilder.signPathBaseUrl = signingRequestUrlObj.protocol + '//' + signingRequestUrlObj.host;
+        this.urlBuilder.signPathApiBaseUrl = response.signPathApiBaseUrl;
 
         core.info(`SignPath signing request has been successfully submitted`);
         core.info(`The signing request id is ${response.signingRequestId}`);
@@ -88,7 +86,7 @@ export class Task {
 
         this.helperInputOutput.setSigningRequestId(response.signingRequestId);
         this.helperInputOutput.setSigningRequestWebUrl(response.signingRequestUrl);
-        this.helperInputOutput.setSignPathApiUrl(this.urlBuilder.signPathBaseUrl + '/API');
+        this.helperInputOutput.setSignPathApiUrl(this.urlBuilder.signPathApiBaseUrl);
 
         return response.signingRequestId;
     }
@@ -159,7 +157,6 @@ export class Task {
         core.info(`Checking the signing request status...`);
         const requestData = await (executeWithRetries<SigningRequestDto>(
             async () => {
-
                 const signingRequestDto = await (this.getSigningRequest(signingRequestId)
                     .then(data => {
                         if(data && !data.isFinalStatus) {

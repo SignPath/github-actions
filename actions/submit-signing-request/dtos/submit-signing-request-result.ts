@@ -3,6 +3,8 @@ export interface SubmitSigningRequestResult {
     validationResult: ValidationResult;
     signingRequestUrl: string;
     error: string;
+    signPathApiBaseUrl: string;
+    signPathWebBaseUrl: string;
 }
 
 export interface ValidationResult {

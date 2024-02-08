@@ -1,6 +1,6 @@
 export class SignPathUrlBuilder {
 
-    public signPathBaseUrl: string = 'https://signpath.io';
+    public signPathApiBaseUrl: string = 'https://signpath.io/Api';
 
     constructor(
         private signPathGitHubConnectorBaseUrl: string) {
@@ -12,11 +12,12 @@ export class SignPathUrlBuilder {
     }
 
     buildGetSigningRequestUrl(organizationId: string, signingRequestId: string): string {
-        if (!this.signPathBaseUrl) {
+        if (!this.signPathApiBaseUrl) {
+            console.error('SignPath Base Url is not set');
             throw new Error('SignPath Base Url is not set');
         }
 
-        return this.signPathBaseUrl  + `/API/v1/${encodeURIComponent(organizationId)}/SigningRequests/${encodeURIComponent(signingRequestId)}`;
+        return this.signPathApiBaseUrl  + `/v1/${encodeURIComponent(organizationId)}/SigningRequests/${encodeURIComponent(signingRequestId)}`;
     }
 
     private trimSlash(text: string): string {

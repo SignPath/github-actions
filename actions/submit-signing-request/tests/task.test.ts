@@ -8,7 +8,6 @@ import * as core from '@actions/core';
 import { HelperInputOutput } from '../helper-input-output';
 import { HelperArtifactDownload } from '../helper-artifact-download';
 import axiosRetry from 'axios-retry';
-import { Config } from '../config';
 
 const testApiToken = 'TEST_TOKEN';
 const testSigningRequestId = 'TEST_ID';
@@ -17,6 +16,7 @@ const testSignPathUrl = 'https://signpath';
 const testSigningRequestUrl = testSignPathUrl + '/api/SigningRequests';
 const testSignedArtifactLink = testConnectorUrl + '/api/artifactlink';
 const testUnsignedArtifactLink = testConnectorUrl + '/api/unsignedartifactlink';
+const testSignPathApiUrl = testSignPathUrl + '/api';
 const testGitHubArtifactName = 'TEST_ARTIFACT_NAME';
 const testArtifactConfigurationSlug = 'TEST_ARTIFACT_CONFIGURATION_SLUG';
 const testOrganizationId = 'TEST_ORGANIZATION_ID';
@@ -58,7 +58,8 @@ beforeEach(() => {
         isFinalStatus: true,
         status: 'Completed',
         unsignedArtifactLink: testUnsignedArtifactLink,
-        signedArtifactLink: testSignedArtifactLink
+        signedArtifactLink: testSignedArtifactLink,
+        signPathApiBaseUrl: testSignPathApiUrl
     };
 
     const getSigningRequestResponse = submitSigningRequestResponse;
@@ -157,7 +158,7 @@ it('test that the output variables are set correctly', async () => {
     await task.run();
     assert.equal(setOutputStub.calledWith('signing-request-id',  testSigningRequestId), true);
     assert.equal(setOutputStub.calledWith('signing-request-web-url', testSigningRequestUrl), true);
-    assert.equal(setOutputStub.calledWith('signpath-api-url', testSignPathUrl + '/API'), true);
+    assert.equal(setOutputStub.calledWith('signpath-api-url', testSignPathApiUrl), true);
     assert.equal(setOutputStub.calledWith('signed-artifact-download-url', testSignedArtifactLink), true);
 });
 
