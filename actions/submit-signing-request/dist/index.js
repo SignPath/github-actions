@@ -37390,7 +37390,7 @@ class SignPathUrlBuilder {
         this.signPathGitHubConnectorBaseUrl = this.trimSlash(this.signPathGitHubConnectorBaseUrl);
     }
     buildSubmitSigningRequestUrl() {
-        return this.signPathGitHubConnectorBaseUrl + '/api/sign';
+        return this.signPathGitHubConnectorBaseUrl + '/api/sign?api-version=1.0';
     }
     buildGetSigningRequestUrl(organizationId, signingRequestId) {
         if (!this.signPathBaseUrl) {

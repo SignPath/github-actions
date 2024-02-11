@@ -151,6 +151,14 @@ it('test that the output variables are set correctly', async () => {
     assert.equal(setOutputStub.calledWith('signed-artifact-download-url', testSignedArtifactLink), true);
 });
 
+it('test that the connectors url has api version', async () => {
+    await task.run();
+    assert.equal(axiosPostStub.calledWith(
+        sinon.match((value:any) => {
+            return value.indexOf('api-version') !== -1;
+        })), true);
+});
+
 it('test if input variables are passed through', async () => {
     await task.run();
     assert.equal(axiosPostStub.calledWith(
@@ -187,7 +195,7 @@ it('if submit signing request fails with 429,502,503,504 the task retries', asyn
 
     const retryTestId = 'RETRY_TEST_ID';
     const addErrorResponse = (httpCode: number) => {
-        nock(testConnectorUrl).post('/api/sign').once().reply(httpCode, 'Server Error');
+        nock(testConnectorUrl).post(/\/api\/sign.*/).once().reply(httpCode, 'Server Error');
     }
 
     addErrorResponse(429);
@@ -196,7 +204,7 @@ it('if submit signing request fails with 429,502,503,504 the task retries', asyn
     addErrorResponse(504);
 
     nock(testConnectorUrl)
-        .post('/api/sign')
+        .post(/\/api\/sign.*/)
         .reply(200, {
             signingRequestUrl: testSigningRequestUrl,
             signingRequestId: retryTestId
@@ -214,7 +222,10 @@ it('if submit signing request fails with 429,502,503,504 the task retries', asyn
 it('no retries for http code 500', async () => {
     // use real *POST* axios for this test, because retries are implemented in axios
     axiosPostStub.restore();
-    nock(testConnectorUrl).post('/api/sign').reply(500, 'Server Error');
+
+    nock(testConnectorUrl).post(/\/api\/sign.*/).reply(500, 'Server Error');
+
+
     const setFailedStub = sandbox.stub(core, 'setFailed');
     await task.run();
     assert.equal(setFailedStub.calledOnce, true);

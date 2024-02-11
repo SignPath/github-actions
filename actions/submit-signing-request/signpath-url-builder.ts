@@ -8,7 +8,7 @@ export class SignPathUrlBuilder {
     }
 
     buildSubmitSigningRequestUrl(): string {
-        return this.signPathGitHubConnectorBaseUrl  + '/api/sign';
+        return this.signPathGitHubConnectorBaseUrl  + '/api/sign?api-version=1.0';
     }
 
     buildGetSigningRequestUrl(organizationId: string, signingRequestId: string): string {
