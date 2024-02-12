@@ -37707,7 +37707,6 @@ class Task {
         return {
             apiToken: this.helperInputOutput.signPathApiToken,
             artifactName: this.helperInputOutput.githubArtifactName,
-            gitHubApiUrl: process.env.GITHUB_API_URL,
             gitHubWorkflowRunId: process.env.GITHUB_RUN_ID,
             gitHubRepository: process.env.GITHUB_REPOSITORY,
             gitHubToken: this.helperInputOutput.gitHubToken,
