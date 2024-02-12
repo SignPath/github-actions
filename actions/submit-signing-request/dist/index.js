@@ -37777,7 +37777,7 @@ function executeWithRetries(promise, maxTotalWaitingTimeMs, minDelayMs, maxDelay
             else {
                 if (Date.now() - startTime > maxTotalWaitingTimeMs) {
                     const maxWaitingTime = moment.utc(Date.now() - startTime).format("hh:mm");
-                    throw new Error(result.retryReason || `The operation has timed out after ${maxWaitingTime}`);
+                    throw new Error(`The operation has timed out after ${maxWaitingTime}`);
                 }
                 core.info(`Next check in ${moment.duration(delayMs).humanize()}`);
                 yield new Promise(resolve => setTimeout(resolve, delayMs));
