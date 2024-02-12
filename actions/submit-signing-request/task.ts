@@ -291,7 +291,7 @@ export class Task {
             artifactName: this.helperInputOutput.githubArtifactName,
             gitHubWorkflowRunId: process.env.GITHUB_RUN_ID,
             gitHubRepository: process.env.GITHUB_REPOSITORY,
-            repositoryOwner: process.env.GITHUB_REPOSITORY_OWNER,
+            gitHubRepositoryOwner: process.env.GITHUB_REPOSITORY_OWNER,
             gitHubToken: this.helperInputOutput.gitHubToken,
             signPathOrganizationId: this.helperInputOutput.organizationId,
             signPathProjectSlug: this.helperInputOutput.projectSlug,
