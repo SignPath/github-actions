@@ -9,27 +9,34 @@ import { AxiosError, AxiosResponse } from 'axios';
 /// 3. stop when maxTotalWaitingTimeMs is reached
 /// 4. if maxDelayMs is reached, use it for all subsequent calls
 
+export interface ExecuteWithRetriesResult<RES> {
+    retry: boolean;
+    result?: RES;
+}
+
 export async function executeWithRetries<RES>(
-    promise: () => Promise<RES>,
+    promise: () => Promise<ExecuteWithRetriesResult<RES>>,
     maxTotalWaitingTimeMs: number, minDelayMs: number, maxDelayMs: number): Promise<RES> {
     const startTime = Date.now();
     let delayMs = minDelayMs;
-    let result: RES;
+    let result: ExecuteWithRetriesResult<RES>;
     while (true) {
-        try {
-            result = await promise();
+        result = await promise();
+
+        if(result.retry === false) {
             break;
         }
-        catch (err) {
+        else {
             if (Date.now() - startTime > maxTotalWaitingTimeMs) {
-                throw err;
+                const maxWaitingTime = moment.utc(Date.now() - startTime).format("hh:mm");
+                throw new Error(`The operation has timed out after ${maxWaitingTime}`);
             }
             core.info(`Next check in ${moment.duration(delayMs).humanize()}`);
             await new Promise(resolve => setTimeout(resolve, delayMs));
             delayMs = Math.min(delayMs * 2, maxDelayMs);
         }
     }
-    return result;
+    return result.result!;
 }
 
 export function getInputNumber(name: string, options?: core.InputOptions): number {

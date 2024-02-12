@@ -7,10 +7,10 @@ it('test execute with retries, eventually successful', async () => {
         counter++;
 
         if (counter < 3) {
-            throw new Error('error');
+            return { retry: true, result: null };
         }
 
-        return 'success';
+        return { retry: false, result: 'success' };
     };
 
     const result = await executeWithRetries(promise, 100, 1, 3);
@@ -21,7 +21,7 @@ it('test execute with retries, eventually successful', async () => {
 /// the test checks that error will be thrown if the promise always fails
 it('test execute with retries - error', async () => {
     const promise = async () => {
-        throw new Error('error');
+        return { retry: true, result: null };
     };
 
     try {
@@ -29,6 +29,6 @@ it('test execute with retries - error', async () => {
         assert.fail('error should be thrown');
     }
     catch (err: any) {
-        expect(err.message).to.eq('error');
+        expect(err.message).contains('timed');
     }
 });
