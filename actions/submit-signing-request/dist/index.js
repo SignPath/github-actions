@@ -37557,7 +37557,7 @@ class Task {
                 }
             });
             core.endGroup();
-            throw new Error("CI system validation failed." + JSON.stringify(validationResult));
+            throw new Error("v1 CI system validation failed." + JSON.stringify(validationResult));
         }
     }
     // if auto-generated GitHub Actions token (secrets.GITHUB_TOKEN) is used for artifact download,

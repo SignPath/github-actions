@@ -114,7 +114,7 @@ export class Task {
 
             core.endGroup()
 
-            throw new Error("CI system validation failed." + JSON.stringify(validationResult));
+            throw new Error("v1 CI system validation failed." + JSON.stringify(validationResult));
         }
     }
 
