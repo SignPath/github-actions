@@ -55,7 +55,7 @@ export class Task {
 
     private async submitSigningRequest (): Promise<string> {
 
-        core.info('1Submitting the signing request to SignPath CI connector...');
+        core.info('2Submitting the signing request to SignPath CI connector...');
 
         // prepare the payload
         const submitRequestPayload = this.buildSigningRequestPayload();
@@ -94,8 +94,8 @@ export class Task {
     }
 
     private checkCiSystemValidationResult(validationResult: ValidationResult): void {
-        core.info('Checking CI system setup validation result...'); // TODO: remove this line after testing
-        core.info(JSON.stringify(validationResult)); // TODO: remove this line after testing
+        console.log('Checking CI system setup validation result...'); // TODO: remove this line after testing
+        console.log(JSON.stringify(validationResult)); // TODO: remove this line after testing
 
         if (validationResult && validationResult.errors.length > 0) {
 

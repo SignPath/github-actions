@@ -37515,7 +37515,7 @@ class Task {
     }
     submitSigningRequest() {
         return __awaiter(this, void 0, void 0, function* () {
-            core.info('1Submitting the signing request to SignPath CI connector...');
+            core.info('2Submitting the signing request to SignPath CI connector...');
             // prepare the payload
             const submitRequestPayload = this.buildSigningRequestPayload();
             // call the signPath API to submit the signing request
@@ -37544,8 +37544,8 @@ class Task {
         });
     }
     checkCiSystemValidationResult(validationResult) {
-        core.info('Checking CI system setup validation result...'); // TODO: remove this line after testing
-        core.info(JSON.stringify(validationResult)); // TODO: remove this line after testing
+        console.log('Checking CI system setup validation result...'); // TODO: remove this line after testing
+        console.log(JSON.stringify(validationResult)); // TODO: remove this line after testing
         if (validationResult && validationResult.errors.length > 0) {
             // got validation errors from the connector
             core.startGroup('CI system setup validation errors');
