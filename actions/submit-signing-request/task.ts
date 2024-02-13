@@ -94,6 +94,9 @@ export class Task {
     }
 
     private checkCiSystemValidationResult(validationResult: ValidationResult): void {
+        core.info('Checking CI system setup validation result...'); // TODO: remove this line after testing
+        core.info(JSON.stringify(validationResult)); // TODO: remove this line after testing
+
         if (validationResult && validationResult.errors.length > 0) {
 
             // got validation errors from the connector
