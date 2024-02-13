@@ -37547,9 +37547,9 @@ class Task {
         if (validationResult && validationResult.errors.length > 0) {
             // got validation errors from the connector
             core.startGroup('CI system setup validation errors');
-            core.error(`[error]Build artifact \"${this.helperInputOutput.githubArtifactName}\" cannot be signed because of continuous integration system setup validation errors:`);
+            core.error(`Build artifact \"${this.helperInputOutput.githubArtifactName}\" cannot be signed because of continuous integration system setup validation errors:`);
             validationResult.errors.forEach(validationError => {
-                core.error(`[error]${validationError.error}`);
+                core.error(`${validationError.error}`);
                 if (validationError.howToFix) {
                     core.info(validationError.howToFix);
                 }
@@ -37664,7 +37664,7 @@ class Task {
             if (error.response) {
                 if (error.response.status === 502 || error.response.status === 503) {
                     retryableHttpErrorCode = true;
-                    core.info('SignPath REST API is temporarily unavailable. Please try again in a few moments.');
+                    core.info('SignPath REST API is temporarily unavailable.');
                 }
                 if (error.response.status === 504) {
                     retryableHttpErrorCode = true;
@@ -37672,7 +37672,7 @@ class Task {
                 }
                 if (error.response.status === 429) {
                     retryableHttpErrorCode = true;
-                    core.info('SignPath REST API encountered too many requests. Please try again in a few moments.');
+                    core.info('SignPath REST API encountered too many requests.');
                 }
             }
             return (error.code !== 'ECONNABORTED' &&
