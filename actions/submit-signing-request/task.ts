@@ -55,7 +55,7 @@ export class Task {
 
     private async submitSigningRequest (): Promise<string> {
 
-        core.info('3Submitting the signing request to SignPath CI connector...');
+        core.info('Submitting the signing request to SignPath CI connector...');
 
         // prepare the payload
         const submitRequestPayload = this.buildSigningRequestPayload();
@@ -89,9 +89,6 @@ export class Task {
     }
 
     private checkCiSystemValidationResult(validationResult: ValidationResult): void {
-        console.log('Checking CI system setup validation result...'); // TODO: remove this line after testing
-        console.log(JSON.stringify(validationResult)); // TODO: remove this line after testing
-
         if (validationResult && validationResult.errors.length > 0) {
 
             // got validation errors from the connector
@@ -109,7 +106,7 @@ export class Task {
 
             core.endGroup()
 
-            throw new Error("v1 CI system validation failed." + JSON.stringify(validationResult));
+            throw new Error("CI system validation failed.");
         }
     }
 

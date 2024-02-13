@@ -37515,7 +37515,7 @@ class Task {
     }
     submitSigningRequest() {
         return __awaiter(this, void 0, void 0, function* () {
-            core.info('3Submitting the signing request to SignPath CI connector...');
+            core.info('Submitting the signing request to SignPath CI connector...');
             // prepare the payload
             const submitRequestPayload = this.buildSigningRequestPayload();
             // call the signPath API to submit the signing request
@@ -37540,8 +37540,6 @@ class Task {
         });
     }
     checkCiSystemValidationResult(validationResult) {
-        console.log('Checking CI system setup validation result...'); // TODO: remove this line after testing
-        console.log(JSON.stringify(validationResult)); // TODO: remove this line after testing
         if (validationResult && validationResult.errors.length > 0) {
             // got validation errors from the connector
             core.startGroup('CI system setup validation errors');
@@ -37553,7 +37551,7 @@ class Task {
                 }
             });
             core.endGroup();
-            throw new Error("v1 CI system validation failed." + JSON.stringify(validationResult));
+            throw new Error("CI system validation failed.");
         }
     }
     // if auto-generated GitHub Actions token (secrets.GITHUB_TOKEN) is used for artifact download,
