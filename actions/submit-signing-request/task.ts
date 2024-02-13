@@ -55,7 +55,7 @@ export class Task {
 
     private async submitSigningRequest (): Promise<string> {
 
-        core.info('2Submitting the signing request to SignPath CI connector...');
+        core.info('3Submitting the signing request to SignPath CI connector...');
 
         // prepare the payload
         const submitRequestPayload = this.buildSigningRequestPayload();
