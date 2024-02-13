@@ -71,11 +71,6 @@ export class Task {
             }))
             .data;
 
-        if (response.error) {
-            // got error from the connector
-            throw new Error(response.error);
-        }
-
         this.checkResponseStructure(response);
         this.checkCiSystemValidationResult(response.validationResult);
 

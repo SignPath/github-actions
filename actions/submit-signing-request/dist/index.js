@@ -37526,10 +37526,6 @@ class Task {
                 throw new Error((0, utils_1.httpErrorResponseToText)(e));
             }))
                 .data;
-            if (response.error) {
-                // got error from the connector
-                throw new Error(response.error);
-            }
             this.checkResponseStructure(response);
             this.checkCiSystemValidationResult(response.validationResult);
             const signingRequestUrlObj = url_1.default.parse(response.signingRequestUrl);
