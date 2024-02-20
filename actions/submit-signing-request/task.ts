@@ -69,8 +69,7 @@ export class Task {
 
                 if(e.code === AxiosError.ERR_BAD_REQUEST) {
 
-                    console.log(e.response?.data);
-                    const connectorResponse = e.response?.data as AxiosResponse<SubmitSigningRequestResult>;
+                    const connectorResponse = e.response as AxiosResponse<SubmitSigningRequestResult>;
 
                     if(connectorResponse.data.error) {
                         throw new Error(connectorResponse.data.error);
