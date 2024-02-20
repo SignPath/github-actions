@@ -37522,9 +37522,10 @@ class Task {
             const response = (yield axios_1.default
                 .post(this.urlBuilder.buildSubmitSigningRequestUrl(), submitRequestPayload, { responseType: "json" })
                 .catch((e) => {
-                var _a;
+                var _a, _b;
                 if (e.code === axios_1.AxiosError.ERR_BAD_REQUEST) {
-                    const connectorResponse = (_a = e.response) === null || _a === void 0 ? void 0 : _a.data;
+                    console.log((_a = e.response) === null || _a === void 0 ? void 0 : _a.data);
+                    const connectorResponse = (_b = e.response) === null || _b === void 0 ? void 0 : _b.data;
                     if (connectorResponse.data.error) {
                         throw new Error(connectorResponse.data.error);
                     }
