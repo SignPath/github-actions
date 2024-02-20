@@ -1,4 +1,4 @@
-import axios, { AxiosError } from 'axios';
+import axios, { AxiosError, AxiosResponse } from 'axios';
 import axiosRetry from 'axios-retry';
 import * as core from '@actions/core';
 import * as moment from 'moment';
@@ -67,7 +67,17 @@ export class Task {
             { responseType: "json" })
             .catch((e: AxiosError) => {
 
-                core.error(`Error code: ${e.code},${typeof(e.code)}`);
+                if(e.code === AxiosError.ERR_BAD_REQUEST) {
+
+                    const connectorResponse = e.response?.data as AxiosResponse<SubmitSigningRequestResult>;
+
+                    if(connectorResponse.data.error) {
+                        throw new Error(connectorResponse.data.error);
+                    }
+
+                    // got validation errors from the connector
+                    return connectorResponse;
+                }
 
                 core.error(`SignPath API call error: ${e.message}`);
                 throw new Error(httpErrorResponseToText(e));
