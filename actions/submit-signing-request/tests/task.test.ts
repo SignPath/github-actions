@@ -10,7 +10,7 @@ import { HelperArtifactDownload } from '../helper-artifact-download';
 import axiosRetry from 'axios-retry';
 import { Config } from '../config';
 
-const testApiToken = 'TEST_TOKEN';
+const testSignPathApiToken = 'TEST_TOKEN';
 const testSigningRequestId = 'TEST_ID';
 const testConnectorUrl = 'https://domain';
 const testSignPathUrl = 'https://signpath';
@@ -30,7 +30,7 @@ const defaultTestInputMap = {
     'wait-for-completion-timeout-in-seconds': '60',
     'download-signed-artifact-timeout-in-seconds': '60',
     'service-unavailable-timeout-in-seconds': '60',
-    'api-token': testApiToken,
+    'api-token': testSignPathApiToken,
     'github-artifact-name': testGitHubArtifactName,
     'github-token': testGitHubToken,
     'organization-id': testOrganizationId,
@@ -174,7 +174,7 @@ it('test if input variables are passed through', async () => {
     assert.equal(axiosPostStub.calledWith(
         sinon.match.any,
         sinon.match((value:any) => {
-            return value.apiToken === testApiToken
+            return value.signPathApiToken === testSignPathApiToken
                 && value.signPathOrganizationId === testOrganizationId
                 && value.artifactName === testGitHubArtifactName
                 && value.signPathProjectSlug === testProjectSlug

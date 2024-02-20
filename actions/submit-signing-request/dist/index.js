@@ -37701,7 +37701,7 @@ class Task {
     }
     buildSigningRequestPayload() {
         return {
-            apiToken: this.helperInputOutput.signPathApiToken,
+            signPathApiToken: this.helperInputOutput.signPathApiToken,
             artifactName: this.helperInputOutput.githubArtifactName,
             gitHubWorkflowRunId: process.env.GITHUB_RUN_ID,
             gitHubRepository: process.env.GITHUB_REPOSITORY,
