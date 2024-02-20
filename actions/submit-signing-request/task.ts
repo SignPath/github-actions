@@ -66,6 +66,9 @@ export class Task {
             submitRequestPayload,
             { responseType: "json" })
             .catch((e: AxiosError) => {
+
+                core.error(`Error code: ${e.code},${typeof(e.code)}`);
+
                 core.error(`SignPath API call error: ${e.message}`);
                 throw new Error(httpErrorResponseToText(e));
             }))

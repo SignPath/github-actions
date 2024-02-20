@@ -37522,6 +37522,7 @@ class Task {
             const response = (yield axios_1.default
                 .post(this.urlBuilder.buildSubmitSigningRequestUrl(), submitRequestPayload, { responseType: "json" })
                 .catch((e) => {
+                core.error(`Error code: ${e.code},${typeof (e.code)}`);
                 core.error(`SignPath API call error: ${e.message}`);
                 throw new Error((0, utils_1.httpErrorResponseToText)(e));
             }))
