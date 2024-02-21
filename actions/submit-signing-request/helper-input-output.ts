@@ -32,7 +32,14 @@ export class HelperInputOutput {
     }
 
     get gitHubToken(): string {
-        return core.getInput('github-token', { required: true });
+        // get user provided a github-token
+        // with fallback to system generated GITHUB_TOKEN
+        return core.getInput('github-token', { required: false })
+            ?? core.getInput('GITHUB-TOKEN');
+    }
+
+    get gitHubExtendedVerificationToken(): string {
+        return core.getInput('github-extended-verification-token', { required: false });
     }
 
     get signingPolicySlug(): string {
