@@ -176,10 +176,7 @@ class HelperInputOutput {
         return core.getInput('project-slug', { required: true });
     }
     get gitHubToken() {
-        var _a;
-        // get user provided a github-token
-        // with fallback to system generated GITHUB_TOKEN
-        return (_a = core.getInput('github-token', { required: false })) !== null && _a !== void 0 ? _a : core.getInput('GITHUB-TOKEN');
+        return core.getInput('github-token', { required: true });
     }
     get gitHubExtendedVerificationToken() {
         return core.getInput('github-extended-verification-token', { required: false });

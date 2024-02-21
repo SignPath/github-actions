@@ -26,6 +26,7 @@ inputs:
     required: true
   github-token:
     description: 'GitHub access token used to read job details and download the artifact. Defaults to secrets.GITHUB_TOKEN. Requires the "action:read" and "content:read" permissions.'
+    default: ${{ github.token }}
     required: false
   github-extended-verification-token:
     description: 'Token used to query the runners API. Only required if larger runners are used. Requires the organization_self_hosted_runners:read permission'

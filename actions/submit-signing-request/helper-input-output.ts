@@ -32,10 +32,7 @@ export class HelperInputOutput {
     }
 
     get gitHubToken(): string {
-        // get user provided a github-token
-        // with fallback to system generated GITHUB_TOKEN
-        return core.getInput('github-token', { required: false })
-            ?? core.getInput('GITHUB-TOKEN');
+        return core.getInput('github-token', { required: true });
     }
 
     get gitHubExtendedVerificationToken(): string {
