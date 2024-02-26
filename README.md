@@ -21,7 +21,7 @@ For a definition of the parameters, see [action.yml](actions/submit-signing-requ
 * `signing-policy-slug` (required): SignPath signing policy slug
 * `artifact-configuration-slug` (required): SignPath artifact configuration slug
 * `github-artifact-name` (required): Name of the Github Actions artifact
-* `github-token` (optional): GitHub access token used to read job details and download the artifact. Defaults to secrets.GITHUB_TOKEN. Requires the `action:read` and `content:read` permissions.
+* `github-token` (optional): GitHub access token used to read job details and download the artifact. Defaults to secrets.GITHUB_TOKEN. Requires the `action:read` and `content:read` permissions. ***REMINDER - stipulate that this toking is going to be stored in the SP infrastructure.***
 * `github-extended-verification-token` (optional): Token used to query the runners API. Only required if larger runners are used. Requires the `organization_self_hosted_runners:read` permission.
 * `wait-for-completion-timeout-in-seconds` (optional): Maximum time in seconds that the action will wait for the signing request to complete. Defaults to 10 minutes.
 * `service-unavailable-timeout-in-seconds` (optional): Total time in seconds that the action will wait for a single service call to succeed (across several retries). Defaults to 10 minutes.
