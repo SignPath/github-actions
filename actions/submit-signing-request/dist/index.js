@@ -37472,7 +37472,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Task = void 0;
-const axios_1 = __importDefault(__nccwpck_require__(948));
+const axios_1 = __importStar(__nccwpck_require__(948));
 const axios_retry_1 = __importDefault(__nccwpck_require__(3434));
 const core = __importStar(__nccwpck_require__(8163));
 const moment = __importStar(__nccwpck_require__(7393));
@@ -37522,6 +37522,14 @@ class Task {
             const response = (yield axios_1.default
                 .post(this.urlBuilder.buildSubmitSigningRequestUrl(), submitRequestPayload, { responseType: "json" })
                 .catch((e) => {
+                if (e.code === axios_1.AxiosError.ERR_BAD_REQUEST) {
+                    const connectorResponse = e.response;
+                    if (connectorResponse.data.error) {
+                        throw new Error(connectorResponse.data.error);
+                    }
+                    // got validation errors from the connector
+                    return connectorResponse;
+                }
                 core.error(`SignPath API call error: ${e.message}`);
                 throw new Error((0, utils_1.httpErrorResponseToText)(e));
             }))
@@ -37701,7 +37709,7 @@ class Task {
     }
     buildSigningRequestPayload() {
         return {
-            apiToken: this.helperInputOutput.signPathApiToken,
+            signPathApiToken: this.helperInputOutput.signPathApiToken,
             artifactName: this.helperInputOutput.githubArtifactName,
             gitHubWorkflowRunId: process.env.GITHUB_RUN_ID,
             gitHubRepository: process.env.GITHUB_REPOSITORY,
