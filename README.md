@@ -14,20 +14,20 @@ This action allows you to sign the build artifact using SignPath signing service
 For a definition of the parameters, see [action.yml](actions/submit-signing-request/action.yml)
 
 ### Action parameters
-* `connector-url` (optional): The URL of the SignPath connector. Defaults to `https://api.signpath.io`
-* `api-token` (required): TSignPath REST API access token More details: `https://about.signpath.io/documentation/build-system-integration#authentication`
+* `connector-url` (optional): The URL of the SignPath connector. Defaults to `https://githubactions.connectors.signpath.io`
+* `api-token` (required): The SignPath REST API access token. Read more in the [SignPath documentation](https://about.signpath.io/documentation/build-system-integration#authentication)
 * `organization-id` (required): SignPath organization ID
 * `project-slug` (required): SignPath project slug
 * `signing-policy-slug` (required): SignPath signing policy slug
 * `artifact-configuration-slug` (required): SignPath artifact configuration slug
 * `github-artifact-name` (required): Name of the Github Actions artifact
-* `github-token` (optional): GitHub access token used to read job details and download the artifact. Defaults to secrets.GITHUB_TOKEN. Requires the `action:read` and `content:read` permissions. ***REMINDER - stipulate that this toking is going to be stored in the SP infrastructure.***
+* `github-token` (optional): GitHub access token used to read job details and download the artifact. Defaults to the [`secrets.GITHUB_TOKEN`](https://docs.github.com/en/actions/security-guides/automatic-token-authentication). Requires the `action:read` and `content:read` permissions. _Note: This token will be stored (encrypted) on SignPath.io._
 * `github-extended-verification-token` (optional): Token used to query the runners API. Only required if larger runners are used. Requires the `organization_self_hosted_runners:read` permission.
 * `wait-for-completion-timeout-in-seconds` (optional): Maximum time in seconds that the action will wait for the signing request to complete. Defaults to 10 minutes.
 * `service-unavailable-timeout-in-seconds` (optional): Total time in seconds that the action will wait for a single service call to succeed (across several retries). Defaults to 10 minutes.
 * `download-signed-artifact-timeout-in-seconds` (optional): HTTP timeout when downloading the signed artifact. Defaults to 5 minutes.
 * `wait-for-completion` (optional): If true, the action will wait for the signing request to complete. Defaults to `true`.
-* `output-artifact-directory` (optional): Path where the signed artifact will be saved. If not specified, the task will not download the artifact from SignPath.
+* `output-artifact-directory` (optional): Path where the signed artifact will be saved. If not specified, the task will not download the signed artifact from SignPath.
 
 ### Prerequisites
 

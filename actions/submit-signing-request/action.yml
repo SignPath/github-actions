@@ -7,7 +7,7 @@ inputs:
     default: 'https://githubactions.connectors.signpath.io'
     required: true
   api-token:
-    description: 'SignPath REST API access token. More details: https://about.signpath.io/documentation/build-system-integration#authentication'
+    description: 'SignPath REST API access token. Read more in the SignPath documentation: https://about.signpath.io/documentation/build-system-integration#authentication'
     required: true
   organization-id:
     description: 'SignPath organization ID'
@@ -25,7 +25,7 @@ inputs:
     description: 'Name of the Github Actions artifact'
     required: true
   github-token:
-    description: 'GitHub access token used to read job details and download the artifact. Defaults to secrets.GITHUB_TOKEN. Requires the "action:read" and "content:read" permissions.'
+    description: 'GitHub access token used to read job details and download the artifact. Defaults to secrets.GITHUB_TOKEN. Requires the "action:read" and "content:read" permissions. Note: This token will be stored (encrypted) on SignPath.io.'
     default: ${{ github.token }}
     required: false
   github-extended-verification-token:
@@ -48,7 +48,7 @@ inputs:
     default: "true"
     required: false
   output-artifact-directory:
-    description: 'Path where the signed artifact will be saved. If not specified, the task will not download the artifact from SignPath'
+    description: 'Path where the signed artifact will be saved. If not specified, the task will not download the signed artifact from SignPath'
     required: false
 outputs:
   signing-request-id:
