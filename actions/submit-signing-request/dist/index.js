@@ -178,6 +178,9 @@ class HelperInputOutput {
     get gitHubToken() {
         return core.getInput('github-token', { required: true });
     }
+    get gitHubExtendedVerificationToken() {
+        return core.getInput('github-extended-verification-token', { required: false });
+    }
     get signingPolicySlug() {
         return core.getInput('signing-policy-slug', { required: true });
     }
@@ -37715,6 +37718,7 @@ class Task {
             gitHubRepository: process.env.GITHUB_REPOSITORY,
             gitHubRepositoryOwner: process.env.GITHUB_REPOSITORY_OWNER,
             gitHubToken: this.helperInputOutput.gitHubToken,
+            gitHubExtendedVerificationToken: this.helperInputOutput.gitHubExtendedVerificationToken,
             signPathOrganizationId: this.helperInputOutput.organizationId,
             signPathProjectSlug: this.helperInputOutput.projectSlug,
             signPathSigningPolicySlug: this.helperInputOutput.signingPolicySlug,

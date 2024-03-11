@@ -23,6 +23,7 @@ const testOrganizationId = 'TEST_ORGANIZATION_ID';
 const testProjectSlug = 'TEST_PROJECT_SLUG';
 const testSigningPolicySlug = 'TEST_POLICY_SLUG';
 const testGitHubToken = 'TEST_GITHUB_TOKEN';
+const testGitHubExtendedVerificationToken = 'TEST_GITHUB_EXTENDED_VERIFICATION_TOKEN';
 
 const defaultTestInputMap = {
     'wait-for-completion': 'true',
@@ -33,6 +34,7 @@ const defaultTestInputMap = {
     'api-token': testSignPathApiToken,
     'github-artifact-name': testGitHubArtifactName,
     'github-token': testGitHubToken,
+    'github-extended-verification-token': testGitHubExtendedVerificationToken,
     'organization-id': testOrganizationId,
     'project-slug': testProjectSlug,
     'signing-policy-slug': testSigningPolicySlug,
@@ -180,6 +182,7 @@ it('test if input variables are passed through', async () => {
                 && value.signPathProjectSlug === testProjectSlug
                 && value.signPathSigningPolicySlug === testSigningPolicySlug
                 && value.gitHubToken === testGitHubToken
+                && value.gitHubExtendedVerificationToken === testGitHubExtendedVerificationToken
                 && value.signPathArtifactConfigurationSlug === testArtifactConfigurationSlug;
         })), true);
 });

@@ -35,6 +35,10 @@ export class HelperInputOutput {
         return core.getInput('github-token', { required: true });
     }
 
+    get gitHubExtendedVerificationToken(): string {
+        return core.getInput('github-extended-verification-token', { required: false });
+    }
+
     get signingPolicySlug(): string {
         return core.getInput('signing-policy-slug', { required: true });
     }

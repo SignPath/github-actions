@@ -7,7 +7,7 @@ inputs:
     default: 'https://githubactions.connectors.signpath.io'
     required: true
   api-token:
-    description: 'SignPath REST API access token. More details: https://about.signpath.io/documentation/build-system-integration#authentication'
+    description: 'SignPath REST API access token. Read more in the SignPath documentation: https://about.signpath.io/documentation/build-system-integration#authentication'
     required: true
   organization-id:
     description: 'SignPath organization ID'
@@ -18,6 +18,19 @@ inputs:
   signing-policy-slug:
     description: 'SignPath signing policy slug'
     required: true
+  artifact-configuration-slug:
+    description: 'SignPath artifact configuration slug'
+    required: false
+  github-artifact-name:
+    description: 'Name of the Github Actions artifact'
+    required: true
+  github-token:
+    description: 'GitHub access token used to read job details and download the artifact. Defaults to secrets.GITHUB_TOKEN. Requires the "action:read" and "content:read" permissions. Note: This token will be stored (encrypted) on SignPath.io.'
+    default: ${{ github.token }}
+    required: false
+  github-extended-verification-token:
+    description: 'Token used to query the runners API. Only required if larger runners are used. Requires the organization_self_hosted_runners:read permission'
+    required: false
   wait-for-completion-timeout-in-seconds:
     description: 'Maximum time in seconds that the action will wait for the signing request to complete'
     default: "600"
@@ -29,23 +42,14 @@ inputs:
   download-signed-artifact-timeout-in-seconds:
     description: 'HTTP timeout when downloading the signed artifact.'
     default: "300"
-    required: false
-  artifact-configuration-slug:
-    description: 'SignPath artifact configuration slug'
-    required: false
-  github-artifact-name:
-    description: 'Name of the Github Actions artifact'
-    required: true
+    required: false  
   wait-for-completion:
     description: 'If true, the action will wait for the signing request to complete'
     default: "true"
     required: false
   output-artifact-directory:
-    description: 'Path where the signed artifact will be saved. If not specified, the task will not download the artifact from SignPath'
+    description: 'Path where the signed artifact will be saved. If not specified, the task will not download the signed artifact from SignPath'
     required: false
-  github-token:
-    description: 'GitHub access token. Is is recommended to use the default token provided by GitHub: secrets.GITHUB_TOKEN. The required permissions are `actions:read` and `content:read`.'
-    required: true
 outputs:
   signing-request-id:
     description: 'The ID of the newly created signing request'
