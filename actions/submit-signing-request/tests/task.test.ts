@@ -176,14 +176,15 @@ it('test if input variables are passed through', async () => {
     assert.equal(axiosPostStub.calledWith(
         sinon.match.any,
         sinon.match((value:any) => {
-            return value.signPathApiToken === testSignPathApiToken
-                && value.signPathOrganizationId === testOrganizationId
-                && value.artifactName === testGitHubArtifactName
-                && value.signPathProjectSlug === testProjectSlug
-                && value.signPathSigningPolicySlug === testSigningPolicySlug
-                && value.gitHubToken === testGitHubToken
-                && value.gitHubExtendedVerificationToken === testGitHubExtendedVerificationToken
-                && value.signPathArtifactConfigurationSlug === testArtifactConfigurationSlug;
+            return value.signPath.apiToken === testSignPathApiToken
+                && value.signPath.organizationId === testOrganizationId
+                && value.signPath.projectSlug === testProjectSlug
+                && value.signPath.signingPolicySlug === testSigningPolicySlug
+                && value.signPath.artifactConfigurationSlug === testArtifactConfigurationSlug
+
+                && value.gitHubActions.artifactName === testGitHubArtifactName
+                && value.gitHubActions.token === testGitHubToken
+                && value.gitHubActions.extendedVerificationToken === testGitHubExtendedVerificationToken;
         })), true);
 });
 

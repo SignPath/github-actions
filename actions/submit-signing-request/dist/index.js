@@ -37712,17 +37712,21 @@ class Task {
     }
     buildSigningRequestPayload() {
         return {
-            signPathApiToken: this.helperInputOutput.signPathApiToken,
-            artifactName: this.helperInputOutput.githubArtifactName,
-            gitHubWorkflowRunId: process.env.GITHUB_RUN_ID,
-            gitHubRepository: process.env.GITHUB_REPOSITORY,
-            gitHubRepositoryOwner: process.env.GITHUB_REPOSITORY_OWNER,
-            gitHubToken: this.helperInputOutput.gitHubToken,
-            gitHubExtendedVerificationToken: this.helperInputOutput.gitHubExtendedVerificationToken,
-            signPathOrganizationId: this.helperInputOutput.organizationId,
-            signPathProjectSlug: this.helperInputOutput.projectSlug,
-            signPathSigningPolicySlug: this.helperInputOutput.signingPolicySlug,
-            signPathArtifactConfigurationSlug: this.helperInputOutput.artifactConfigurationSlug
+            gitHubActions: {
+                artifactName: this.helperInputOutput.githubArtifactName,
+                workflowRunId: process.env.GITHUB_RUN_ID,
+                repository: process.env.GITHUB_REPOSITORY,
+                repositoryOwner: process.env.GITHUB_REPOSITORY_OWNER,
+                token: this.helperInputOutput.gitHubToken,
+                extendedVerificationToken: this.helperInputOutput.gitHubExtendedVerificationToken,
+            },
+            signPath: {
+                apiToken: this.helperInputOutput.signPathApiToken,
+                organizationId: this.helperInputOutput.organizationId,
+                projectSlug: this.helperInputOutput.projectSlug,
+                signingPolicySlug: this.helperInputOutput.signingPolicySlug,
+                artifactConfigurationSlug: this.helperInputOutput.artifactConfigurationSlug
+            }
         };
     }
 }
