@@ -37651,6 +37651,7 @@ class Task {
     configureAxios() {
         // set user agent
         axios_1.default.defaults.headers.common['User-Agent'] = this.buildUserAgent();
+        axios_1.default.defaults.timeout = this.helperInputOutput.serviceUnavailableTimeoutInSeconds * 1000;
         // original axiosRetry doesn't work for POST requests
         // thats why we need to override some functions
         axios_retry_1.default.isNetworkOrIdempotentRequestError = (error) => {
@@ -37675,7 +37676,7 @@ class Task {
                 }
                 if (error.response.status === 504) {
                     retryableHttpErrorCode = true;
-                    core.info(`SignPath REST API answer time exceeded the timeout (${axios_1.default.defaults.timeout === 0 ? 'No timeout' : axios_1.default.defaults.timeout}).`);
+                    core.info(`SignPath REST API gateway timeout exceeded.`);
                 }
                 if (error.response.status === 429) {
                     retryableHttpErrorCode = true;
