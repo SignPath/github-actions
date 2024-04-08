@@ -27,9 +27,10 @@ export async function executeWithRetries<RES>(
             break;
         }
         else {
-            if (Date.now() - startTime > maxTotalWaitingTimeMs) {
-                const maxWaitingTime = moment.utc(Date.now() - startTime).format("hh:mm");
-                throw new Error(`The operation has timed out after ${maxWaitingTime}`);
+            const totalWaitingTimeMs = Date.now() - startTime;
+            if (totalWaitingTimeMs > maxTotalWaitingTimeMs) {
+                const waitingTime = moment.utc(totalWaitingTimeMs).format("HH:mm:ss");
+                throw new Error(`The operation has timed out after ${waitingTime}`);
             }
             core.info(`Next check in ${moment.duration(delayMs).humanize()}`);
             await new Promise(resolve => setTimeout(resolve, delayMs));

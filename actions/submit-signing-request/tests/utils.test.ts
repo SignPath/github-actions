@@ -29,6 +29,7 @@ it('test execute with retries - error', async () => {
         assert.fail('error should be thrown');
     }
     catch (err: any) {
+        console.log(err.message);
         expect(err.message).contains('timed');
     }
 });
