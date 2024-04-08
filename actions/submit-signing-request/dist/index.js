@@ -37676,7 +37676,7 @@ class Task {
                 }
                 if (error.response.status === 504) {
                     retryableHttpErrorCode = true;
-                    core.info(`SignPath REST API gateway timeout exceeded.`);
+                    core.info(`SignPath REST API gateway timeout.`);
                 }
                 if (error.response.status === 429) {
                     retryableHttpErrorCode = true;
