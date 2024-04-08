@@ -25,7 +25,7 @@ CLI.build = function(args) {
 CLI.test = function(args) {
     run('tsc --rootDir actions');
     try {
-      run('mocha actions/*/tests/**/*.js --reporter mocha-reporter-gha', /*inheritStreams:*/true);
+      run('mocha actions/*/tests/**/*.js --reporter list', /*inheritStreams:*/true);
     } catch (e) {
         console.error(e);
         process.exit(1);
