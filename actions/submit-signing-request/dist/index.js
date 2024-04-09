@@ -37540,6 +37540,7 @@ class Task {
                 if (e.code === axios_1.AxiosError.ERR_BAD_REQUEST) {
                     const connectorResponse = e.response;
                     if (connectorResponse.data.error) {
+                        this.checkCiSystemValidationResult(connectorResponse.data.validationResult);
                         throw new Error(connectorResponse.data.error);
                     }
                     // got validation errors from the connector
