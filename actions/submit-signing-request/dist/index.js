@@ -68,6 +68,7 @@ const path = __importStar(__nccwpck_require__(1017));
 const nodeStreamZip = __importStar(__nccwpck_require__(7175));
 const axios_1 = __importDefault(__nccwpck_require__(948));
 const utils_1 = __nccwpck_require__(9586);
+const timeout_stream_1 = __nccwpck_require__(620);
 class HelperArtifactDownload {
     constructor(helperInputOutput) {
         this.helperInputOutput = helperInputOutput;
@@ -96,7 +97,16 @@ class HelperArtifactDownload {
             // save the signed artifact to temp ZIP file
             const tmpZipFile = path.join(tmpDir, 'artifact_tmp.zip');
             const writer = fs.createWriteStream(tmpZipFile);
-            response.data.pipe(writer);
+            const timeoutStream = new timeout_stream_1.TimeoutStream({
+                timeoutMs,
+                errorMessage: `Timeout of ${timeoutMs} ms exceeded while downloading the signed artifact from SignPath`
+            });
+            response.data.pipe(timeoutStream)
+                .on('timeout', (err) => {
+                response.data.req.abort();
+                response.data.emit('error', err);
+            })
+                .pipe(writer);
             yield new Promise((resolve, reject) => {
                 writer.on('finish', resolve);
                 writer.on('error', reject);
@@ -37730,6 +37740,45 @@ class Task {
     }
 }
 exports.Task = Task;
+
+
+/***/ }),
+
+/***/ 620:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// axious timeout des not cover a file downloading time
+// to cover it we need to inject timeout check into the file streaming process
+// https://github.com/axios/axios/issues/459
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TimeoutStream = void 0;
+const stream_1 = __nccwpck_require__(2781);
+class TimeoutStream extends stream_1.PassThrough {
+    constructor(options) {
+        super();
+        this.options = options;
+        this._timer = null;
+        this.clear = this.clear.bind(this);
+        this.on('end', this.clear);
+    }
+    _transform(chunk, encoding, callback) {
+        if (this.options.timeoutMs > 0) {
+            // clear existing timer
+            this.clear();
+            this._timer = setTimeout(() => this.emit('timeout', new Error(this.options.errorMessage)), this.options.timeoutMs);
+        }
+        callback(null, chunk);
+    }
+    clear() {
+        if (this._timer) {
+            clearTimeout(this._timer);
+            this._timer = null;
+        }
+    }
+}
+exports.TimeoutStream = TimeoutStream;
 
 
 /***/ }),

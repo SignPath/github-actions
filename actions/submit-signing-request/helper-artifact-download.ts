@@ -5,6 +5,7 @@ import * as nodeStreamZip from 'node-stream-zip';
 import axios, { AxiosError } from 'axios';
 import { HelperInputOutput } from "./helper-input-output";
 import { buildSignPathAuthorizationHeader, httpErrorResponseToText } from './utils';
+import { TimeoutStream } from './timeout-stream';
 
 
 export class HelperArtifactDownload {
@@ -40,7 +41,19 @@ export class HelperArtifactDownload {
         // save the signed artifact to temp ZIP file
         const tmpZipFile = path.join(tmpDir, 'artifact_tmp.zip');
         const writer = fs.createWriteStream(tmpZipFile);
-        response.data.pipe(writer);
+
+        const timeoutStream = new TimeoutStream({
+            timeoutMs,
+            errorMessage: `Timeout of ${timeoutMs} ms exceeded while downloading the signed artifact from SignPath`
+        });
+
+        response.data.pipe(timeoutStream)
+            .on('timeout', (err: any) => {
+                response.data.req.abort()
+                response.data.emit('error', err)
+            })
+            .pipe(writer);
+
         await new Promise((resolve, reject) => {
             writer.on('finish', resolve)
             writer.on('error', reject)
