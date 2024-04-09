@@ -15,17 +15,22 @@ export class TimeoutStream extends PassThrough  {
 
     constructor(private options: TimeoutStreamOptions) {
         super()
-
+        console.log('TimeoutStream constructor')
         this.clear = this.clear.bind(this)
         this.on('end', this.clear)
     }
 
     _transform(chunk: any, encoding: BufferEncoding, callback: TransformCallback) {
+        console.log('TimeoutStream _transform')
         if (this.options.timeoutMs > 0) {
             // clear existing timer
             this.clear()
 
-            this._timer = setTimeout(() => this.emit('timeout', new Error(this.options.errorMessage)),
+            this._timer = setTimeout(() =>
+            {
+                console.log('TimeoutStream _transform timeout')
+                this.emit('timeout', new Error(this.options.errorMessage));
+            },
             this.options.timeoutMs);
         }
 
@@ -33,7 +38,9 @@ export class TimeoutStream extends PassThrough  {
     }
 
     clear() {
+        console.log('TimeoutStream clear')
         if (this._timer) {
+            console.log('TimeoutStream clear clearTimeout')
             clearTimeout(this._timer)
             this._timer = null;
         }
