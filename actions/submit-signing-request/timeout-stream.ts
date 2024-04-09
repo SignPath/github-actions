@@ -11,17 +11,20 @@ export interface TimeoutStreamOptions
 }
 
 export class TimeoutStream extends PassThrough  {
-    private _timer: NodeJS.Timeout | null = null;
+    private _timeout: NodeJS.Timeout | null = null;
 
     constructor(private options: TimeoutStreamOptions) {
         super();
-        this._timer = setTimeout(() =>
+        this._timeout = setTimeout(() =>
         {
             this.emit('timeout', new Error(this.options.errorMessage));
         }, this.options.timeoutMs);
 
-        this.on('data', chunk => {
-            this.emit('data', chunk);
+        this.on('end', () => {
+            if (this._timeout) {
+                clearTimeout(this._timeout);
+                this._timeout = null;
+            }
         });
     }
 }

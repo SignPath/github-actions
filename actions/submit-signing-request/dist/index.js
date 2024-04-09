@@ -103,7 +103,6 @@ class HelperArtifactDownload {
             });
             response.data.pipe(timeoutStream)
                 .on('timeout', (err) => {
-                console.log('TimeoutStream timeout event');
                 response.data.req.abort();
                 response.data.emit('error', err);
             })
@@ -37760,12 +37759,15 @@ class TimeoutStream extends stream_1.PassThrough {
     constructor(options) {
         super();
         this.options = options;
-        this._timer = null;
-        this._timer = setTimeout(() => {
+        this._timeout = null;
+        this._timeout = setTimeout(() => {
             this.emit('timeout', new Error(this.options.errorMessage));
         }, this.options.timeoutMs);
-        this.on('data', chunk => {
-            this.emit('data', chunk);
+        this.on('end', () => {
+            if (this._timeout) {
+                clearTimeout(this._timeout);
+                this._timeout = null;
+            }
         });
     }
 }

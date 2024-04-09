@@ -49,7 +49,6 @@ export class HelperArtifactDownload {
 
         response.data.pipe(timeoutStream)
             .on('timeout', (err: any) => {
-                console.log('TimeoutStream timeout event');
                 response.data.req.abort()
                 response.data.emit('error', err)
             })
