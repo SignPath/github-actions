@@ -245,14 +245,13 @@ export class Task {
             let retryableHttpErrorCode = false;
 
             if(error.response) {
-                if(error.response.status === 502 || error.response.status === 503) {
+                if(error.response.status === 502
+                    || error.response.status === 503
+                    || error.response.status === 504) {
                     retryableHttpErrorCode = true;
-                    core.info('SignPath REST API is temporarily unavailable.');
+                    core.info(`SignPath REST API is temporarily unavailable (server responded with ${error.response.status}).`);
                 }
-                if(error.response.status === 504) {
-                    retryableHttpErrorCode = true;
-                    core.info(`SignPath REST API gateway timeout.`);
-                }
+
                 if(error.response.status === 429) {
                     retryableHttpErrorCode = true;
                     core.info('SignPath REST API encountered too many requests.');

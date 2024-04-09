@@ -37670,13 +37670,11 @@ class Task {
         axios_retry_1.default.isRetryableError = (error) => {
             let retryableHttpErrorCode = false;
             if (error.response) {
-                if (error.response.status === 502 || error.response.status === 503) {
+                if (error.response.status === 502
+                    || error.response.status === 503
+                    || error.response.status === 504) {
                     retryableHttpErrorCode = true;
-                    core.info('SignPath REST API is temporarily unavailable.');
-                }
-                if (error.response.status === 504) {
-                    retryableHttpErrorCode = true;
-                    core.info(`SignPath REST API gateway timeout.`);
+                    core.info(`SignPath REST API is temporarily unavailable (server responded with ${error.response.status}).`);
                 }
                 if (error.response.status === 429) {
                     retryableHttpErrorCode = true;
@@ -37784,9 +37782,10 @@ function executeWithRetries(promise, maxTotalWaitingTimeMs, minDelayMs, maxDelay
                 break;
             }
             else {
-                if (Date.now() - startTime > maxTotalWaitingTimeMs) {
-                    const maxWaitingTime = moment.utc(Date.now() - startTime).format("hh:mm");
-                    throw new Error(`The operation has timed out after ${maxWaitingTime}`);
+                const totalWaitingTimeMs = Date.now() - startTime;
+                if (totalWaitingTimeMs > maxTotalWaitingTimeMs) {
+                    const waitingTime = moment.utc(totalWaitingTimeMs).format("HH:mm:ss");
+                    throw new Error(`The operation has timed out after ${waitingTime}`);
                 }
                 core.info(`Next check in ${moment.duration(delayMs).humanize()}`);
                 yield new Promise(resolve => setTimeout(resolve, delayMs));
