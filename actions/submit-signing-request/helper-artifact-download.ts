@@ -13,9 +13,13 @@ export class HelperArtifactDownload {
 
     public async downloadSignedArtifact(artifactDownloadUrl: string): Promise<void> {
         core.info(`Signed artifact url ${artifactDownloadUrl}`);
+
+        const timeoutMs = this.helperInputOutput.downloadSignedArtifactTimeoutInSeconds * 1000;
+
         const response = await axios.get(artifactDownloadUrl, {
             responseType: 'stream',
-            timeout: this.helperInputOutput.downloadSignedArtifactTimeoutInSeconds * 1000,
+            timeout: timeoutMs,
+            signal: AbortSignal.timeout(timeoutMs),
             headers: {
                 Authorization: buildSignPathAuthorizationHeader(this.helperInputOutput.signPathApiToken)
             }

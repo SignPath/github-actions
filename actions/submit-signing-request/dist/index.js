@@ -75,9 +75,11 @@ class HelperArtifactDownload {
     downloadSignedArtifact(artifactDownloadUrl) {
         return __awaiter(this, void 0, void 0, function* () {
             core.info(`Signed artifact url ${artifactDownloadUrl}`);
+            const timeoutMs = this.helperInputOutput.downloadSignedArtifactTimeoutInSeconds * 1000;
             const response = yield axios_1.default.get(artifactDownloadUrl, {
                 responseType: 'stream',
-                timeout: this.helperInputOutput.downloadSignedArtifactTimeoutInSeconds * 1000,
+                timeout: timeoutMs,
+                signal: AbortSignal.timeout(timeoutMs),
                 headers: {
                     Authorization: (0, utils_1.buildSignPathAuthorizationHeader)(this.helperInputOutput.signPathApiToken)
                 }
@@ -37651,7 +37653,9 @@ class Task {
     configureAxios() {
         // set user agent
         axios_1.default.defaults.headers.common['User-Agent'] = this.buildUserAgent();
-        axios_1.default.defaults.timeout = this.helperInputOutput.serviceUnavailableTimeoutInSeconds * 1000;
+        const timeoutMs = this.helperInputOutput.serviceUnavailableTimeoutInSeconds * 1000;
+        axios_1.default.defaults.timeout = timeoutMs;
+        axios_1.default.defaults.signal = AbortSignal.timeout(timeoutMs);
         // original axiosRetry doesn't work for POST requests
         // thats why we need to override some functions
         axios_retry_1.default.isNetworkOrIdempotentRequestError = (error) => {

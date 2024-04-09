@@ -223,7 +223,9 @@ export class Task {
 
         // set user agent
         axios.defaults.headers.common['User-Agent'] = this.buildUserAgent();
-        axios.defaults.timeout = this.helperInputOutput.serviceUnavailableTimeoutInSeconds * 1000;
+        const timeoutMs = this.helperInputOutput.serviceUnavailableTimeoutInSeconds * 1000
+        axios.defaults.timeout = timeoutMs;
+        axios.defaults.signal = AbortSignal.timeout(timeoutMs);
 
         // original axiosRetry doesn't work for POST requests
         // thats why we need to override some functions
