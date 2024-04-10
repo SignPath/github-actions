@@ -30,10 +30,11 @@ jobs:
       uses: actions/github-script@v7
       with:
         script: |
+          const branchName = github.event.base_ref.replace('refs/heads/', '');
           const list = await github.rest.git.listMatchingRefs({
             owner: 'volbobvol',
             repo: 'action-target',
-            ref: '${{ github.event.base_ref }}'
+            ref: 'heads/' + branchName
           });
           console.log(JSON.stringify(list));
           await github.rest.git.createRef({
