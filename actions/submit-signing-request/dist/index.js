@@ -37753,7 +37753,7 @@ exports.Task = Task;
 
 // axious timeout des not cover a file downloading time
 // to cover it we need to inject timeout check into the file streaming process
-// https://github.com/axios/axios/issues/459
+// https://github.com/axios/axios/issues/459#issuecomment-252072777-permalink
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TimeoutStream = void 0;
 const stream_1 = __nccwpck_require__(2781);

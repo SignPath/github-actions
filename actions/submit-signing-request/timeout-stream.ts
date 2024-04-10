@@ -1,6 +1,6 @@
 // axious timeout des not cover a file downloading time
 // to cover it we need to inject timeout check into the file streaming process
-// https://github.com/axios/axios/issues/459
+// https://github.com/axios/axios/issues/459#issuecomment-252072777-permalink
 
 import { PassThrough, TransformCallback } from "stream";
 
