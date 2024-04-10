@@ -18,3 +18,21 @@ jobs:
 
     - name: build the actions
       run: npm run build
+
+    - name: Extract branch name
+      shell: bash
+      run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+      id: extract_branch
+
+    - name: Pushes to another repository
+      uses: cpina/github-action-push-to-another-repository@v1.7.2
+      env:
+        API_TOKEN_GITHUB: ${{ secrets.PUBLISH_BUILD_GITHUB_TOKEN }}
+      with:
+        source-directory: './actions/submit-signing-request/dist'
+        destination-github-username: 'SignPath'
+        destination-repository-name: 'github-action-submit-signing-request'
+        user-name: GHA build process
+        create-target-branch-if-needed: true
+        commit-message: ${{ github.event.head_commit.message }}
+        target-branch: ${{ steps.extract_branch.outputs.branch }}
