@@ -5,7 +5,7 @@ import * as moment from 'moment';
 import url from 'url';
 
 import { SubmitSigningRequestResult, ValidationResult } from './dtos/submit-signing-request-result';
-import { ExecuteWithRetriesResult, buildSignPathAuthorizationHeader, executeWithRetries, httpErrorResponseToText } from './utils';
+import { buildSignPathAuthorizationHeader, executeWithRetries, httpErrorResponseToText } from './utils';
 import { SignPathUrlBuilder } from './signpath-url-builder';
 import { SigningRequestDto } from './dtos/signing-request';
 import { HelperInputOutput } from './helper-input-output';
@@ -72,6 +72,8 @@ export class Task {
                     const connectorResponse = e.response as AxiosResponse<SubmitSigningRequestResult>;
 
                     if(connectorResponse.data.error) {
+                        // when an error occurs in the validator the error details are in the validationResult
+                        this.checkCiSystemValidationResult(connectorResponse.data.validationResult);
                         throw new Error(connectorResponse.data.error);
                     }
 
@@ -223,6 +225,8 @@ export class Task {
 
         // set user agent
         axios.defaults.headers.common['User-Agent'] = this.buildUserAgent();
+        const timeoutMs = this.helperInputOutput.serviceUnavailableTimeoutInSeconds * 1000
+        axios.defaults.timeout = timeoutMs;
 
         // original axiosRetry doesn't work for POST requests
         // thats why we need to override some functions
@@ -244,14 +248,13 @@ export class Task {
             let retryableHttpErrorCode = false;
 
             if(error.response) {
-                if(error.response.status === 502 || error.response.status === 503) {
+                if(error.response.status === 502
+                    || error.response.status === 503
+                    || error.response.status === 504) {
                     retryableHttpErrorCode = true;
-                    core.info('SignPath REST API is temporarily unavailable.');
+                    core.info(`SignPath REST API is temporarily unavailable (server responded with ${error.response.status}).`);
                 }
-                if(error.response.status === 504) {
-                    retryableHttpErrorCode = true;
-                    core.info(`SignPath REST API answer time exceeded the timeout (${axios.defaults.timeout === 0 ? 'No timeout' : axios.defaults.timeout}).`);
-                }
+
                 if(error.response.status === 429) {
                     retryableHttpErrorCode = true;
                     core.info('SignPath REST API encountered too many requests.');

@@ -68,6 +68,7 @@ const path = __importStar(__nccwpck_require__(1017));
 const nodeStreamZip = __importStar(__nccwpck_require__(7175));
 const axios_1 = __importDefault(__nccwpck_require__(948));
 const utils_1 = __nccwpck_require__(9586);
+const timeout_stream_1 = __nccwpck_require__(620);
 class HelperArtifactDownload {
     constructor(helperInputOutput) {
         this.helperInputOutput = helperInputOutput;
@@ -75,9 +76,10 @@ class HelperArtifactDownload {
     downloadSignedArtifact(artifactDownloadUrl) {
         return __awaiter(this, void 0, void 0, function* () {
             core.info(`Signed artifact url ${artifactDownloadUrl}`);
+            const timeoutMs = this.helperInputOutput.downloadSignedArtifactTimeoutInSeconds * 1000;
             const response = yield axios_1.default.get(artifactDownloadUrl, {
                 responseType: 'stream',
-                timeout: this.helperInputOutput.downloadSignedArtifactTimeoutInSeconds * 1000,
+                timeout: timeoutMs,
                 headers: {
                     Authorization: (0, utils_1.buildSignPathAuthorizationHeader)(this.helperInputOutput.signPathApiToken)
                 }
@@ -94,7 +96,16 @@ class HelperArtifactDownload {
             // save the signed artifact to temp ZIP file
             const tmpZipFile = path.join(tmpDir, 'artifact_tmp.zip');
             const writer = fs.createWriteStream(tmpZipFile);
-            response.data.pipe(writer);
+            const timeoutStream = new timeout_stream_1.TimeoutStream({
+                timeoutMs,
+                errorMessage: `Timeout of ${timeoutMs}ms exceeded while downloading the signed artifact from SignPath`
+            });
+            response.data.pipe(timeoutStream)
+                .on('timeout', (err) => {
+                response.data.req.abort();
+                response.data.emit('error', err);
+            })
+                .pipe(writer);
             yield new Promise((resolve, reject) => {
                 writer.on('finish', resolve);
                 writer.on('error', reject);
@@ -37528,6 +37539,8 @@ class Task {
                 if (e.code === axios_1.AxiosError.ERR_BAD_REQUEST) {
                     const connectorResponse = e.response;
                     if (connectorResponse.data.error) {
+                        // when an error occurs in the validator the error details are in the validationResult
+                        this.checkCiSystemValidationResult(connectorResponse.data.validationResult);
                         throw new Error(connectorResponse.data.error);
                     }
                     // got validation errors from the connector
@@ -37651,6 +37664,8 @@ class Task {
     configureAxios() {
         // set user agent
         axios_1.default.defaults.headers.common['User-Agent'] = this.buildUserAgent();
+        const timeoutMs = this.helperInputOutput.serviceUnavailableTimeoutInSeconds * 1000;
+        axios_1.default.defaults.timeout = timeoutMs;
         // original axiosRetry doesn't work for POST requests
         // thats why we need to override some functions
         axios_retry_1.default.isNetworkOrIdempotentRequestError = (error) => {
@@ -37669,13 +37684,11 @@ class Task {
         axios_retry_1.default.isRetryableError = (error) => {
             let retryableHttpErrorCode = false;
             if (error.response) {
-                if (error.response.status === 502 || error.response.status === 503) {
+                if (error.response.status === 502
+                    || error.response.status === 503
+                    || error.response.status === 504) {
                     retryableHttpErrorCode = true;
-                    core.info('SignPath REST API is temporarily unavailable.');
-                }
-                if (error.response.status === 504) {
-                    retryableHttpErrorCode = true;
-                    core.info(`SignPath REST API answer time exceeded the timeout (${axios_1.default.defaults.timeout === 0 ? 'No timeout' : axios_1.default.defaults.timeout}).`);
+                    core.info(`SignPath REST API is temporarily unavailable (server responded with ${error.response.status}).`);
                 }
                 if (error.response.status === 429) {
                     retryableHttpErrorCode = true;
@@ -37727,6 +37740,38 @@ class Task {
     }
 }
 exports.Task = Task;
+
+
+/***/ }),
+
+/***/ 620:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// axious timeout des not cover a file downloading time
+// to cover it we need to inject timeout check into the file streaming process
+// https://github.com/axios/axios/issues/459#issuecomment-252072777-permalink
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TimeoutStream = void 0;
+const stream_1 = __nccwpck_require__(2781);
+class TimeoutStream extends stream_1.PassThrough {
+    constructor(options) {
+        super();
+        this.options = options;
+        this._timeout = null;
+        this._timeout = setTimeout(() => {
+            this.emit('timeout', new Error(this.options.errorMessage));
+        }, this.options.timeoutMs);
+        this.on('end', () => {
+            if (this._timeout) {
+                clearTimeout(this._timeout);
+                this._timeout = null;
+            }
+        });
+    }
+}
+exports.TimeoutStream = TimeoutStream;
 
 
 /***/ }),
@@ -37783,9 +37828,10 @@ function executeWithRetries(promise, maxTotalWaitingTimeMs, minDelayMs, maxDelay
                 break;
             }
             else {
-                if (Date.now() - startTime > maxTotalWaitingTimeMs) {
-                    const maxWaitingTime = moment.utc(Date.now() - startTime).format("hh:mm");
-                    throw new Error(`The operation has timed out after ${maxWaitingTime}`);
+                const totalWaitingTimeMs = Date.now() - startTime;
+                if (totalWaitingTimeMs > maxTotalWaitingTimeMs) {
+                    const waitingTime = moment.utc(totalWaitingTimeMs).format("HH:mm:ss");
+                    throw new Error(`The operation has timed out after ${waitingTime}`);
                 }
                 core.info(`Next check in ${moment.duration(delayMs).humanize()}`);
                 yield new Promise(resolve => setTimeout(resolve, delayMs));
