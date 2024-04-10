@@ -98,7 +98,7 @@ class HelperArtifactDownload {
             const writer = fs.createWriteStream(tmpZipFile);
             const timeoutStream = new timeout_stream_1.TimeoutStream({
                 timeoutMs,
-                errorMessage: `Timeout of ${timeoutMs} ms exceeded while downloading the signed artifact from SignPath`
+                errorMessage: `Timeout of ${timeoutMs}ms exceeded while downloading the signed artifact from SignPath`
             });
             response.data.pipe(timeoutStream)
                 .on('timeout', (err) => {

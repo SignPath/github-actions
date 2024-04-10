@@ -43,7 +43,7 @@ export class HelperArtifactDownload {
 
         const timeoutStream = new TimeoutStream({
             timeoutMs,
-            errorMessage: `Timeout of ${timeoutMs} ms exceeded while downloading the signed artifact from SignPath`
+            errorMessage: `Timeout of ${timeoutMs}ms exceeded while downloading the signed artifact from SignPath`
         });
 
         response.data.pipe(timeoutStream)
