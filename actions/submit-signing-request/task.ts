@@ -5,7 +5,7 @@ import * as moment from 'moment';
 import url from 'url';
 
 import { SubmitSigningRequestResult, ValidationResult } from './dtos/submit-signing-request-result';
-import { ExecuteWithRetriesResult, buildSignPathAuthorizationHeader, executeWithRetries, httpErrorResponseToText } from './utils';
+import { buildSignPathAuthorizationHeader, executeWithRetries, httpErrorResponseToText } from './utils';
 import { SignPathUrlBuilder } from './signpath-url-builder';
 import { SigningRequestDto } from './dtos/signing-request';
 import { HelperInputOutput } from './helper-input-output';
@@ -227,7 +227,6 @@ export class Task {
         axios.defaults.headers.common['User-Agent'] = this.buildUserAgent();
         const timeoutMs = this.helperInputOutput.serviceUnavailableTimeoutInSeconds * 1000
         axios.defaults.timeout = timeoutMs;
-        axios.defaults.signal = AbortSignal.timeout(timeoutMs);
 
         // original axiosRetry doesn't work for POST requests
         // thats why we need to override some functions

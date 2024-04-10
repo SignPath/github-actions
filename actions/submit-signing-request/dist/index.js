@@ -80,7 +80,6 @@ class HelperArtifactDownload {
             const response = yield axios_1.default.get(artifactDownloadUrl, {
                 responseType: 'stream',
                 timeout: timeoutMs,
-                signal: AbortSignal.timeout(timeoutMs),
                 headers: {
                     Authorization: (0, utils_1.buildSignPathAuthorizationHeader)(this.helperInputOutput.signPathApiToken)
                 }
@@ -37667,7 +37666,6 @@ class Task {
         axios_1.default.defaults.headers.common['User-Agent'] = this.buildUserAgent();
         const timeoutMs = this.helperInputOutput.serviceUnavailableTimeoutInSeconds * 1000;
         axios_1.default.defaults.timeout = timeoutMs;
-        axios_1.default.defaults.signal = AbortSignal.timeout(timeoutMs);
         // original axiosRetry doesn't work for POST requests
         // thats why we need to override some functions
         axios_retry_1.default.isNetworkOrIdempotentRequestError = (error) => {

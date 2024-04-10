@@ -20,7 +20,6 @@ export class HelperArtifactDownload {
         const response = await axios.get(artifactDownloadUrl, {
             responseType: 'stream',
             timeout: timeoutMs,
-            signal: AbortSignal.timeout(timeoutMs),
             headers: {
                 Authorization: buildSignPathAuthorizationHeader(this.helperInputOutput.signPathApiToken)
             }
