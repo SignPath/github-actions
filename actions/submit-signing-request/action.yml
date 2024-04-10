@@ -61,4 +61,4 @@ outputs:
     description: 'The URL of the signed artifact in SignPath'
 runs:
   using: 'node20'
-  main: 'dist/index.js'
+  main: 'index.js'
