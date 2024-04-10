@@ -2,8 +2,6 @@ name: Build
 
 on:
   push:
-    tags:
-    - '*'
   pull_request:
 
 jobs:
@@ -32,8 +30,8 @@ jobs:
         API_TOKEN_GITHUB: ${{ secrets.PUBLISH_BUILD_GITHUB_TOKEN }}
       with:
         source-directory: './actions/submit-signing-request/dist'
-        destination-github-username: 'SignPath'
-        destination-repository-name: 'github-action-submit-signing-request'
+        destination-github-username: 'volbobvol'
+        destination-repository-name: 'action-target'
         user-name: GHA build process
         create-target-branch-if-needed: true
         commit-message: ${{ github.event.head_commit.message }}
