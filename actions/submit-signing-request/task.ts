@@ -72,6 +72,7 @@ export class Task {
                     const connectorResponse = e.response as AxiosResponse<SubmitSigningRequestResult>;
 
                     if(connectorResponse.data.error) {
+                        // when an error occurs in the validator the error details are in the validationResult
                         this.checkCiSystemValidationResult(connectorResponse.data.validationResult);
                         throw new Error(connectorResponse.data.error);
                     }
