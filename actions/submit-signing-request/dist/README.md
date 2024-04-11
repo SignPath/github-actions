@@ -1,11 +1,9 @@
 # SignPath Github Actions
 
-This repository contains the Github Actions that can be used to submit a signing request to [SignPath.io](https://about.signpath.io).
+This repository contains the Github Action `submit-signing-request` that can be used to submit a signing request to [SignPath.io](https://about.signpath.io).
 
 > [!WARNING]
-> These actions are currently in development and only available in preview mode for selected customers. Contact [support@signpath.io](mailto:support@signpath.io) if you are interested in using them.
-
-Currently, there is only one action available, `submit-signing-request`.
+> This action is currently in development and only available in preview mode for selected customers. Contact [support@signpath.io](mailto:support@signpath.io) if you are interested in using it.
 
 ## submit-signing-request
 

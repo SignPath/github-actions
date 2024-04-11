@@ -5,4 +5,4 @@
 /node_modules
 /actions/submit-signing-request/node_modules
 /actions/**/*.js
-/actions/**/dist/*
+!/**/dist/*.js
