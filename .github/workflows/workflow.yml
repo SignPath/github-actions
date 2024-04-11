@@ -31,7 +31,7 @@ jobs:
       with:
         script: |
           console.log(JSON.stringify(context));
-          const branchName = context.base_ref.replace('refs/heads/', '');
+          const branchName = context.payload.base_ref.replace('refs/heads/', '');
           const list = await github.rest.git.listMatchingRefs({
             owner: 'volbobvol',
             repo: 'action-target',
