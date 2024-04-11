@@ -5,6 +5,7 @@ import * as nodeStreamZip from 'node-stream-zip';
 import axios, { AxiosError } from 'axios';
 import { HelperInputOutput } from "./helper-input-output";
 import { buildSignPathAuthorizationHeader, httpErrorResponseToText } from './utils';
+import { TimeoutStream } from './timeout-stream';
 
 
 export class HelperArtifactDownload {
@@ -13,9 +14,12 @@ export class HelperArtifactDownload {
 
     public async downloadSignedArtifact(artifactDownloadUrl: string): Promise<void> {
         core.info(`Signed artifact url ${artifactDownloadUrl}`);
+
+        const timeoutMs = this.helperInputOutput.downloadSignedArtifactTimeoutInSeconds * 1000;
+
         const response = await axios.get(artifactDownloadUrl, {
             responseType: 'stream',
-            timeout: this.helperInputOutput.downloadSignedArtifactTimeoutInSeconds * 1000,
+            timeout: timeoutMs,
             headers: {
                 Authorization: buildSignPathAuthorizationHeader(this.helperInputOutput.signPathApiToken)
             }
@@ -36,7 +40,19 @@ export class HelperArtifactDownload {
         // save the signed artifact to temp ZIP file
         const tmpZipFile = path.join(tmpDir, 'artifact_tmp.zip');
         const writer = fs.createWriteStream(tmpZipFile);
-        response.data.pipe(writer);
+
+        const timeoutStream = new TimeoutStream({
+            timeoutMs,
+            errorMessage: `Timeout of ${timeoutMs}ms exceeded while downloading the signed artifact from SignPath`
+        });
+
+        response.data.pipe(timeoutStream)
+            .on('timeout', (err: any) => {
+                response.data.req.abort()
+                response.data.emit('error', err)
+            })
+            .pipe(writer);
+
         await new Promise((resolve, reject) => {
             writer.on('finish', resolve)
             writer.on('error', reject)
