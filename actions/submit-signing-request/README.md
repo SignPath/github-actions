@@ -40,7 +40,7 @@ For a definition of the parameters, see [action.yml](actions/submit-signing-requ
 ```yaml
 steps:
 - id: optional_step_id
-  uses: signpath/github-actions/actions/submit-signing-request@v0.1
+  uses: signpath/github-action-submit-signing-request@v0.3
       with:
         api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
         organization-id: '<SignPath organization id>'
@@ -57,7 +57,7 @@ steps:
 ```yaml
 steps:
 - id: optional_step_id
-  uses: signpath/github-actions/actions/submit-signing-request@v0.1
+  uses: signpath/github-action-submit-signing-request@v0.3
       with:
         api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
         organization-id: '<SignPath organization id>'
