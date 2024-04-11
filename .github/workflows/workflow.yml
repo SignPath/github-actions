@@ -31,7 +31,7 @@ jobs:
       with:
         script: |
           console.log(JSON.stringify(context));
-          const branchName = context.payload.base_ref.replace('refs/heads/', '');
+          const branchName = 'main'; // context.payload.base_ref.replace('refs/heads/', '');
           console.log('Branch name:' + branchName);
 
           const { Octokit } = require("@octokit/rest");
