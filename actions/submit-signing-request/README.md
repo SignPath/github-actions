@@ -1,5 +1,3 @@
-F2
-
 # SignPath Github Actions
 
 This repository contains the Github Action `submit-signing-request` that can be used to submit a signing request to [SignPath.io](https://about.signpath.io).
