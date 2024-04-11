@@ -19,6 +19,10 @@ CLI.build = function(args) {
     run('tsc --rootDir actions');
     run('ncc build index.js -o dist', true, 'actions/submit-signing-request');
 
+    const actionPath = 'actions/submit-signing-request';
+    fs.copyFileSync(actionPath + '/README.md', actionPath + '/dist/README.md');
+    fs.copyFileSync(actionPath + '/action.yml', actionPath + '/dist/action.yml');
+    
     run('npm run test', true);
 }
 
