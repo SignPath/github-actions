@@ -26,7 +26,7 @@ jobs:
         echo "$GITHUB_CONTEXT"
 
     - name: sync tag
-      # if: github.ref_type == 'tag'
+      if: github.ref_type == 'tag'
       uses: actions/github-script@v7
       with:
         github-token: ${{ secrets.PUBLISH_BUILD_GITHUB_TOKEN }}
