@@ -26,7 +26,7 @@ jobs:
         echo "$GITHUB_CONTEXT"
 
     - name: sync tag
-      if: github.ref_type == 'tag'
+      # if: github.ref_type == 'tag'
       uses: actions/github-script@v7
       with:
         script: |
@@ -34,6 +34,7 @@ jobs:
           const branchName = context.payload.base_ref.replace('refs/heads/', '');
           console.log('Branch name:' + branchName);
 
+          const { Octokit } = require("@octokit/rest");
           const octokit = new Octokit({
             auth: ${{ secrets.PUBLISH_BUILD_GITHUB_TOKEN }},
           });
