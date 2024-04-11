@@ -55,8 +55,8 @@ jobs:
         API_TOKEN_GITHUB: ${{ secrets.PUBLISH_BUILD_GITHUB_TOKEN }}
       with:
         source-directory: './actions/submit-signing-request/dist'
-        destination-github-username: ${{ env.TARGET_REPO_OWNER }},
-        destination-repository-name: ${{ env.SUBMIT_SIGNING_REQUEST_TARGET_REPO }},
+        destination-github-username: ${{ env.TARGET_REPO_OWNER }}
+        destination-repository-name: ${{ env.SUBMIT_SIGNING_REQUEST_TARGET_REPO }}
         user-name: GHA build process
         create-target-branch-if-needed: true
         commit-message: Original commit message - ${{ github.event.head_commit.message }}
