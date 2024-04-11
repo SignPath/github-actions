@@ -31,7 +31,7 @@ jobs:
       with:
         github-token: ${{ secrets.PUBLISH_BUILD_GITHUB_TOKEN }}
         script: |
-          const branchName = 'main'; // context.payload.base_ref.replace('refs/heads/', '');
+          const branchName = context.payload.base_ref.replace('refs/heads/', '');
 
           const list = await github.rest.git.listMatchingRefs({
             owner: 'volbobvol',
