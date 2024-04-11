@@ -4,6 +4,10 @@ on:
  push:
  pull_request:
 
+env:
+  TARGET_REPO_OWNER: SignPath
+  SUBMIT_SIGNING_REQUEST_TARGET_REPO: github-action-submit-signing-request
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,20 +23,41 @@ jobs:
     - name: build the actions
       run: npm run build
 
-    - name: Extract branch name
-      shell: bash
-      run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
-      id: extract_branch
+    - name: sync tag
+      if: github.ref_type == 'tag'
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.PUBLISH_BUILD_GITHUB_TOKEN }}
+        script: |
+          const branchName = context.payload.base_ref.replace('refs/heads/', '');
 
-    - name: Pushes to another repository
+          const list = await github.rest.git.listMatchingRefs({
+            owner: ${{ env.TARGET_REPO_OWNER }},
+            repo: ${{ env.SUBMIT_SIGNING_REQUEST_TARGET_REPO }},
+            ref: 'heads/' + branchName
+          });
+          
+          if (list.data.length === 0) {
+            console.log('Branch not found in the terget repository');
+          }
+
+          await github.rest.git.createRef({
+            owner: ${{ env.TARGET_REPO_OWNER }},
+            repo: ${{ env.SUBMIT_SIGNING_REQUEST_TARGET_REPO }},
+            ref: 'refs/tags/${{ github.ref_name }}',
+            sha: list.data[0].object.sha
+          })
+
+    - name: pushes build result
+      if: github.ref_type == 'branch'
       uses: cpina/github-action-push-to-another-repository@v1.7.2
       env:
         API_TOKEN_GITHUB: ${{ secrets.PUBLISH_BUILD_GITHUB_TOKEN }}
       with:
         source-directory: './actions/submit-signing-request/dist'
-        destination-github-username: 'SignPath'
-        destination-repository-name: 'github-action-submit-signing-request'
+        destination-github-username: ${{ env.TARGET_REPO_OWNER }},
+        destination-repository-name: ${{ env.SUBMIT_SIGNING_REQUEST_TARGET_REPO }},
         user-name: GHA build process
         create-target-branch-if-needed: true
-        commit-message: ${{ github.event.head_commit.message }}
-        target-branch: ${{ steps.extract_branch.outputs.branch }}
+        commit-message: Original commit message - ${{ github.event.head_commit.message }}
+        target-branch: ${{ github.ref_name  }}
