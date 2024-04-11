@@ -33,13 +33,13 @@ jobs:
         script: |
           const branchName = 'main'; // context.payload.base_ref.replace('refs/heads/', '');
 
-          const list = await github.git.listMatchingRefs({
+          const list = await github.rest.git.listMatchingRefs({
             owner: 'volbobvol',
             repo: 'action-target',
             ref: 'heads/' + branchName
           });
           console.log(JSON.stringify(list));
-          await github.git.createRef({
+          await github.rest.git.createRef({
             owner: 'volbobvol',
             repo: 'action-target',
             ref: 'refs/tags/${{ github.ref_name }}',
