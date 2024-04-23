@@ -7,7 +7,7 @@ inputs:
     default: 'https://githubactions.connectors.signpath.io'
     required: true
   api-token:
-    description: 'SignPath REST API access token. Read more in the SignPath documentation: https://about.signpath.io/documentation/build-system-integration#authentication'
+    description: 'SignPath REST API access token. Read more in the SignPath documentation: https://about.signpath.io/redirects/connectors/api-token'
     required: true
   organization-id:
     description: 'SignPath organization ID'
@@ -22,7 +22,7 @@ inputs:
     description: 'SignPath artifact configuration slug'
     required: false
   github-artifact-name:
-    description: 'Name of the Github Actions artifact'
+    description: 'Name of the Github Actions artifact. Must be uploaded using the actions/upload-artifact action before it can be signed'
     required: true
   github-token:
     description: 'GitHub access token used to read job details and download the artifact. Defaults to secrets.GITHUB_TOKEN. Requires the "action:read" and "content:read" permissions. Note: This token will be stored (encrypted) on SignPath.io.'
