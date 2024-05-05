@@ -171,7 +171,13 @@ it('test that the connectors url has api version', async () => {
         })), true);
 });
 
-it('test if input variables are passed through', async () => {
+it('test if input and env variables are passed through', async () => {
+
+    process.env.GITHUB_RUN_ID = '123';
+    process.env.GITHUB_RUN_ATTEMPT = '999';
+    process.env.GITHUB_REPOSITORY = 'test/test';
+    process.env.GITHUB_REPOSITORY_OWNER = 'owner';
+
     await task.run();
     assert.equal(axiosPostStub.calledWith(
         sinon.match.any,
@@ -183,7 +189,12 @@ it('test if input variables are passed through', async () => {
                 && value.signPathSigningPolicySlug === testSigningPolicySlug
                 && value.gitHubToken === testGitHubToken
                 && value.gitHubExtendedVerificationToken === testGitHubExtendedVerificationToken
-                && value.signPathArtifactConfigurationSlug === testArtifactConfigurationSlug;
+                && value.signPathArtifactConfigurationSlug === testArtifactConfigurationSlug
+
+                && value.gitHubWorkflowRunId === process.env.GITHUB_RUN_ID
+                && value.gitHubWorkflowRunAttempt === process.env.GITHUB_RUN_ATTEMPT
+                && value.gitHubRepository === process.env.GITHUB_REPOSITORY
+                && value.gitHubRepositoryOwner === process.env.GITHUB_REPOSITORY_OWNER;
         })), true);
 });
 
