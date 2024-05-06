@@ -38,7 +38,8 @@ const defaultTestInputMap = {
     'organization-id': testOrganizationId,
     'project-slug': testProjectSlug,
     'signing-policy-slug': testSigningPolicySlug,
-    'artifact-configuration-slug': testArtifactConfigurationSlug
+    'artifact-configuration-slug': testArtifactConfigurationSlug,
+    'parameters': 'param1: "value1"'
 };
 
 const sandbox = sinon.createSandbox();
@@ -183,7 +184,10 @@ it('test if input variables are passed through', async () => {
                 && value.signPathSigningPolicySlug === testSigningPolicySlug
                 && value.gitHubToken === testGitHubToken
                 && value.gitHubExtendedVerificationToken === testGitHubExtendedVerificationToken
-                && value.signPathArtifactConfigurationSlug === testArtifactConfigurationSlug;
+                && value.signPathArtifactConfigurationSlug === testArtifactConfigurationSlug
+                && value.parameters.length === 1
+                && value.parameters[0].name === 'param1'
+                && value.parameters[0].value === 'value1'
         })), true);
 });
 
