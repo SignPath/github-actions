@@ -1,5 +1,5 @@
 import { assert, expect } from "chai";
-import { executeWithRetries } from "../utils";
+import { executeWithRetries, parseUseDefinedParameters } from "../utils";
 
 it('test execute with retries, eventually successful', async () => {
     let counter = 0;
@@ -31,5 +31,65 @@ it('test execute with retries - error', async () => {
     catch (err: any) {
         expect(err.message).contains('00:00:00'); // test formatting
         expect(err.message).contains('timed');
+    }
+});
+
+it('test params parsing happy path', () => {
+    const input = `param1    :  "value1"
+    param2: "value2"
+    param3: "value3"`;
+
+    const result = parseUseDefinedParameters(input);
+
+    // assert
+    expect(result).to.deep.eq([
+        { name: 'param1', value: 'value1' },
+        { name: 'param2', value: 'value2' },
+        { name: 'param3', value: 'value3' }
+    ]);
+});
+
+it('test params parsing empty input', () => {
+    const input = '';
+    const result = parseUseDefinedParameters(input);
+    expect(result).to.deep.eq([]);
+});
+
+it('test params parsing invalid input', () => {
+    const input = `param1: "value1
+    `;
+
+    try {
+        parseUseDefinedParameters(input);
+        assert.fail('error should be thrown');
+    }
+    catch (err: any) {
+        expect(err.message).contains('Invalid parameter value');
+        expect(err.message).contains('value1');
+    }
+});
+
+it('test params parsing invalid name', () => {
+    const input = `pa*ram1: "value1"`;
+
+    try {
+        parseUseDefinedParameters(input);
+        assert.fail('error should be thrown');
+    }
+    catch (err: any) {
+        expect(err.message).contains('Invalid parameter name');
+        expect(err.message).contains('pa*ram1');
+    }
+});
+
+it('test params parsing empty name', () => {
+    const input = `: "value1"`;
+
+    try {
+        parseUseDefinedParameters(input);
+        assert.fail('error should be thrown');
+    }
+    catch (err: any) {
+        expect(err.message).contains('Parameter name cannot be empty');
     }
 });
