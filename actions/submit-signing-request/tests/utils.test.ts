@@ -64,6 +64,7 @@ it('test params parsing invalid input', () => {
         assert.fail('error should be thrown');
     }
     catch (err: any) {
+        expect(err.message).contains('Unterminated string in JSON at position'); // original error message
         expect(err.message).contains('Invalid parameter value');
         expect(err.message).contains('value1');
     }

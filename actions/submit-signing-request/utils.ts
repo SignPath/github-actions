@@ -104,8 +104,8 @@ function parseUseDefinedParameter(line: string): { name: string, value: string }
     try{
         parsedValue = JSON.parse(value);
     }
-    catch {
-        parsedValue = null;
+    catch (e) {
+        throw new Error(`Invalid parameter value: ${value} - ${e}. Only valid JSON strings are allowed.`);
     }
 
     if (typeof(parsedValue) !== 'string') {
