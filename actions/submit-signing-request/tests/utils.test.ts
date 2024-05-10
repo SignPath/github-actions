@@ -1,5 +1,5 @@
 import { assert, expect } from "chai";
-import { executeWithRetries, parseUseDefinedParameters } from "../utils";
+import { executeWithRetries, parseUserDefinedParameters } from "../utils";
 
 it('test execute with retries, eventually successful', async () => {
     let counter = 0;
@@ -39,7 +39,7 @@ it('test params parsing happy path', () => {
     param2: "value2"
     param3: "value3"`;
 
-    const result = parseUseDefinedParameters(input);
+    const result = parseUserDefinedParameters(input);
 
     // assert
     expect(result).to.deep.eq([
@@ -51,7 +51,7 @@ it('test params parsing happy path', () => {
 
 it('test params parsing empty input', () => {
     const input = '';
-    const result = parseUseDefinedParameters(input);
+    const result = parseUserDefinedParameters(input);
     expect(result).to.deep.eq([]);
 });
 
@@ -60,7 +60,7 @@ it('test params parsing invalid input', () => {
     `;
 
     try {
-        parseUseDefinedParameters(input);
+        parseUserDefinedParameters(input);
         assert.fail('error should be thrown');
     }
     catch (err: any) {
@@ -73,7 +73,7 @@ it('test params parsing invalid name', () => {
     const input = `pa*ram1: "value1"`;
 
     try {
-        parseUseDefinedParameters(input);
+        parseUserDefinedParameters(input);
         assert.fail('error should be thrown');
     }
     catch (err: any) {
@@ -86,7 +86,7 @@ it('test params parsing empty name', () => {
     const input = `: "value1"`;
 
     try {
-        parseUseDefinedParameters(input);
+        parseUserDefinedParameters(input);
         assert.fail('error should be thrown');
     }
     catch (err: any) {

@@ -1,5 +1,5 @@
 import * as core from '@actions/core';
-import { getInputNumber, parseUseDefinedParameters } from './utils';
+import { getInputNumber, parseUserDefinedParameters } from './utils';
 
 export class HelperInputOutput {
 
@@ -41,8 +41,7 @@ export class HelperInputOutput {
 
     get parameters(): {name:string, value: string}[] {
         const value = core.getInput('parameters', { required: false });
-        console.log(`parameters: ${value}`);
-        return parseUseDefinedParameters(value);
+        return parseUserDefinedParameters(value);
     }
 
     get signingPolicySlug(): string {

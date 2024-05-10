@@ -71,7 +71,7 @@ export function httpErrorResponseToText(err: AxiosError): string {
     return err.message;
 }
 
-export function parseUseDefinedParameters(parameters: string): {name:string, value: string}[] {
+export function parseUserDefinedParameters(parameters: string): {name:string, value: string}[] {
     // split value by lines
     const parmLines = parameters.split('\n');
     // for each line get param name and value
@@ -105,10 +105,10 @@ function parseUseDefinedParameter(line: string): { name: string, value: string }
         parsedValue = JSON.parse(value);
     }
     catch {
-        parsedValue = value;
+        parsedValue = null;
     }
 
-    if (`"${parsedValue}"` !== value) {
+    if (typeof(parsedValue) !== 'string') {
         throw new Error(`Invalid parameter value: ${value}. Only valid JSON strings are allowed.`);
     }
 
