@@ -1,2 +1,2 @@
-const taskVersion = '0.4';
+const taskVersion = '0.5';
 export { taskVersion };
