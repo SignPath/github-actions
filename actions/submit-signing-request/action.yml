@@ -31,6 +31,9 @@ inputs:
   github-extended-verification-token:
     description: 'Token used to query the runners API. Only required if larger runners are used. Requires the organization_self_hosted_runners:read permission'
     required: false
+  parameters:
+    description: 'Multiline-string of values that map to user-defined parameters in the Artifact Configuration. Use one line per parameter with the format <name>: "<value>" where <value> needs to be a valid JSON string.'
+    required: false
   wait-for-completion-timeout-in-seconds:
     description: 'Maximum time in seconds that the action will wait for the signing request to complete'
     default: "600"

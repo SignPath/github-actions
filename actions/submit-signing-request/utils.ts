@@ -70,3 +70,47 @@ export function httpErrorResponseToText(err: AxiosError): string {
 
     return err.message;
 }
+
+export function parseUserDefinedParameters(parameters: string): {name:string, value: string}[] {
+    // split value by lines
+    const parmLines = parameters.split('\n');
+    // for each line get param name and value
+    return parmLines.map(parseUseDefinedParameter)
+        .filter(p => p !== null)
+        .map(p => p!);
+}
+
+function parseUseDefinedParameter(line: string): { name: string, value: string } | null {
+    if (!line) {
+        return null;
+    }
+    const nameValueSeparatorIndex = line.indexOf(':');
+    if (nameValueSeparatorIndex === -1) {
+        throw new Error(`Invalid parameter line: ${line}`);
+    }
+    const name = line.substring(0, nameValueSeparatorIndex).trim();
+    const value = line.substring(nameValueSeparatorIndex + 1).trim();
+
+    // validate name
+    if (!name) {
+        throw new Error(`Parameter name cannot be empty. Line: ${line}`);
+    }
+    if(/[a-zA-Z0-9.\-_]+/.exec(name)?.[0] !== name) {
+        throw new Error(`Invalid parameter name: ${name}. Only alphanumeric characters, dots, dashes and underscores are allowed.`);
+    }
+
+    // validate value
+    let parsedValue = null;
+    try{
+        parsedValue = JSON.parse(value);
+    }
+    catch (e) {
+        throw new Error(`Invalid parameter value: ${value} - ${e}. Only valid JSON strings are allowed.`);
+    }
+
+    if (typeof(parsedValue) !== 'string') {
+        throw new Error(`Invalid parameter value: ${value}. Only valid JSON strings are allowed.`);
+    }
+
+    return { name, value: parsedValue };
+}

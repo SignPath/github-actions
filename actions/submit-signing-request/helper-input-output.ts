@@ -1,5 +1,5 @@
 import * as core from '@actions/core';
-import { getInputNumber } from './utils';
+import { getInputNumber, parseUserDefinedParameters } from './utils';
 
 export class HelperInputOutput {
 
@@ -37,6 +37,11 @@ export class HelperInputOutput {
 
     get gitHubExtendedVerificationToken(): string {
         return core.getInput('github-extended-verification-token', { required: false });
+    }
+
+    get parameters(): {name:string, value: string}[] {
+        const value = core.getInput('parameters', { required: false });
+        return parseUserDefinedParameters(value);
     }
 
     get signingPolicySlug(): string {

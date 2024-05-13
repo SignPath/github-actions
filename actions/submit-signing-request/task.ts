@@ -308,7 +308,8 @@ export class Task {
             signPathOrganizationId: this.helperInputOutput.organizationId,
             signPathProjectSlug: this.helperInputOutput.projectSlug,
             signPathSigningPolicySlug: this.helperInputOutput.signingPolicySlug,
-            signPathArtifactConfigurationSlug: this.helperInputOutput.artifactConfigurationSlug
+            signPathArtifactConfigurationSlug: this.helperInputOutput.artifactConfigurationSlug,
+            parameters: this.helperInputOutput.parameters
         };
     }
 }
