@@ -109,7 +109,7 @@ export class Task {
             // got validation errors from the connector
             core.startGroup('CI system setup validation errors')
 
-            core.error(`Build artifact \"${this.helperInputOutput.githubArtifactName}\" cannot be signed because of continuous integration system setup validation errors:`);
+            core.error(`Build artifact with id \"${this.helperInputOutput.githubArtifactId}\" cannot be signed because of continuous integration system setup validation errors:`);
 
             validationResult.errors.forEach(validationError => {
                 core.error(`${validationError.error}`);
@@ -299,7 +299,7 @@ export class Task {
     private buildSigningRequestPayload(): any {
         return {
             signPathApiToken: this.helperInputOutput.signPathApiToken,
-            artifactName: this.helperInputOutput.githubArtifactName,
+            artifactId: this.helperInputOutput.githubArtifactId,
             gitHubWorkflowRunId: process.env.GITHUB_RUN_ID,
             gitHubRepository: process.env.GITHUB_REPOSITORY,
             gitHubRepositoryOwner: process.env.GITHUB_REPOSITORY_OWNER,
