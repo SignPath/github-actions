@@ -60,10 +60,10 @@ steps:
   uses: signpath/github-action-submit-signing-request@v0.3
       with:
         api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
-        github-artifact-id: 'steps.<upload-artifact-step-id>.outputs.artifact-id'
+        organization-id: '<SignPath organization id>'
         project-slug: '<SignPath project slug>'
         signing-policy-slug: '<SignPath policy slug>'
-        github-artifact-name: '<Name of the artifact to sign>'
+        github-artifact-id: 'steps.<upload-artifact-step-id>.outputs.artifact-id'
         wait-for-completion: false
 ```
 
