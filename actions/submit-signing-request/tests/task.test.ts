@@ -17,7 +17,7 @@ const testSignPathUrl = 'https://signpath';
 const testSigningRequestUrl = testSignPathUrl + '/api/SigningRequests';
 const testSignedArtifactLink = testConnectorUrl + '/api/artifactlink';
 const testUnsignedArtifactLink = testConnectorUrl + '/api/unsignedartifactlink';
-const testGitHubArtifactName = 'TEST_ARTIFACT_NAME';
+const testGitHubArtifactId = 'TEST_ARTIFACT_ID';
 const testArtifactConfigurationSlug = 'TEST_ARTIFACT_CONFIGURATION_SLUG';
 const testOrganizationId = 'TEST_ORGANIZATION_ID';
 const testProjectSlug = 'TEST_PROJECT_SLUG';
@@ -32,7 +32,7 @@ const defaultTestInputMap = {
     'download-signed-artifact-timeout-in-seconds': '60',
     'service-unavailable-timeout-in-seconds': '60',
     'api-token': testSignPathApiToken,
-    'github-artifact-name': testGitHubArtifactName,
+    'github-artifact-id': testGitHubArtifactId,
     'github-token': testGitHubToken,
     'github-extended-verification-token': testGitHubExtendedVerificationToken,
     'organization-id': testOrganizationId,
@@ -179,7 +179,7 @@ it('test if input variables are passed through', async () => {
         sinon.match((value:any) => {
             return value.signPathApiToken === testSignPathApiToken
                 && value.signPathOrganizationId === testOrganizationId
-                && value.artifactName === testGitHubArtifactName
+                && value.artifactId === testGitHubArtifactId
                 && value.signPathProjectSlug === testProjectSlug
                 && value.signPathSigningPolicySlug === testSigningPolicySlug
                 && value.gitHubToken === testGitHubToken

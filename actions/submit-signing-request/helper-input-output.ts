@@ -7,8 +7,8 @@ export class HelperInputOutput {
         return core.getInput('connector-url', { required: true });
     }
 
-    get githubArtifactName(): string {
-        return core.getInput('github-artifact-name', { required: true });
+    get githubArtifactId(): string {
+        return core.getInput('github-artifact-id', { required: true });
     }
 
     get outputArtifactDirectory(): string {
