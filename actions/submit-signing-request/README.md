@@ -19,7 +19,7 @@ The _Github Actions Trusted Build System_ must be enabled in the organization an
 | `project-slug`                                | :heavy_check_mark: | The SignPath project slug.
 | `signing-policy-slug`                         | :heavy_check_mark: | The SignPath signing policy slug.
 | `artifact-configuration-slug`                 | -                  | The SignPath artifact configuration slug. If not specified, the default is used.
-| `github-artifact-id`                          | :heavy_check_mark: | Id of the Github Actions artifact. Must be uploaded using the [actions/upload-artifact](https://github.com/actions/upload-artifact) v4+ action before it can be signed. Use `steps.<step-id>.outputs.artifact-id` from the preceding actions/upload-artifact action step.
+| `github-artifact-id`                          | :heavy_check_mark: | Id of the Github Actions artifact. Must be uploaded using the [actions/upload-artifact](https://github.com/actions/upload-artifact) v4+ action before it can be signed. Use `{{ steps.<step-id>.outputs.artifact-id }}` from the preceding actions/upload-artifact action step.
 | `wait-for-completion`                         | -                  | If true, the action will wait for the signing request to complete. Defaults to `true`.
 | `output-artifact-directory`                   | -                  | Path to where the signed artifact will be extracted. If not specified, the task will not download the signed artifact from SignPath.
 | `github-token`                                | -                  | GitHub access token used to read job details and download the artifact. Defaults to the [`secrets.GITHUB_TOKEN`](https://docs.github.com/en/actions/security-guides/automatic-token-authentication). Requires the `action:read` and `content:read` permissions. _Note: This token will be stored (encrypted) on SignPath.io._
@@ -44,7 +44,7 @@ steps:
         organization-id: '<SignPath organization id>'
         project-slug: '<SignPath project slug>'
         signing-policy-slug: '<SignPath signing policy slug>'
-        github-artifact-id: 'steps.<upload-artifact-step-id>.outputs.artifact-id'
+        github-artifact-id: '${{steps.<upload-artifact-step-id>.outputs.artifact-id}}'
         wait-for-completion: true
         output-artifact-directory: '<Destination path for the signed artifact>'
         parameters: |
@@ -63,7 +63,7 @@ steps:
         organization-id: '<SignPath organization id>'
         project-slug: '<SignPath project slug>'
         signing-policy-slug: '<SignPath policy slug>'
-        github-artifact-id: 'steps.<upload-artifact-step-id>.outputs.artifact-id'
+        github-artifact-id: '${{steps.<upload-artifact-step-id>.outputs.artifact-id}}'
         wait-for-completion: false
 ```
 
