@@ -12,14 +12,14 @@ The _Github Actions Trusted Build System_ must be enabled in the organization an
 ## Action parameters
 
 | Parameter                                     | Required           | Description |
-| ----                                          | -                  | ------      |
+| ----                                          | ---                | ------      |
 | `connector-url`                               | -                  | The URL of the SignPath connector. Required if self-hosted.
 | `api-token`                                   | :heavy_check_mark: | The SignPath REST API access token. Read more in the [SignPath documentation](https://about.signpath.io/redirects/connectors/api-token). Requires submitter permissions in the specified project/signing policy.
 | `organization-id`                             | :heavy_check_mark: | The SignPath organization ID.
 | `project-slug`                                | :heavy_check_mark: | The SignPath project slug.
 | `signing-policy-slug`                         | :heavy_check_mark: | The SignPath signing policy slug.
 | `artifact-configuration-slug`                 | -                  | The SignPath artifact configuration slug. If not specified, the default is used.
-| `github-artifact-id`                          | :heavy_check_mark: | Id of the Github Actions artifact. Must be uploaded using the [actions/upload-artifact](https://github.com/actions/upload-artifact) v4+ action before it can be signed. Use `{{ steps.<step-id>.outputs.artifact-id }}` from the preceding actions/upload-artifact action step.
+| `github-artifact-name`                        | :heavy_check_mark: | Name of the Github Actions artifact. Must be uploaded using the [actions/upload-artifact](https://github.com/actions/upload-artifact) action before it can be signed.
 | `wait-for-completion`                         | -                  | If true, the action will wait for the signing request to complete. Defaults to `true`.
 | `output-artifact-directory`                   | -                  | Path to where the signed artifact will be extracted. If not specified, the task will not download the signed artifact from SignPath.
 | `github-token`                                | -                  | GitHub access token used to read job details and download the artifact. Defaults to the [`secrets.GITHUB_TOKEN`](https://docs.github.com/en/actions/security-guides/automatic-token-authentication). Requires the `action:read` and `content:read` permissions. _Note: This token will be stored (encrypted) on SignPath.io._
@@ -27,7 +27,6 @@ The _Github Actions Trusted Build System_ must be enabled in the organization an
 | `wait-for-completion-timeout-in-seconds`      | -                  | Maximum time in seconds that the action will wait for the signing request to complete. Defaults to 10 minutes.
 | `service-unavailable-timeout-in-seconds`      | -                  | Total time in seconds that the action will wait for a single service call to succeed (across several retries). Defaults to 10 minutes.
 | `download-signed-artifact-timeout-in-seconds` | -                  | HTTP timeout when downloading the signed artifact. Defaults to 5 minutes.
-| `parameters`                                  | -                  | Multiline-string of values that map to user-defined parameters in the Artifact Configuration. Use one line per parameter with the format <name>: "<value>" where <value> needs to be a valid JSON string.
 
 See also [action.yml](action.yml)
 
@@ -41,15 +40,12 @@ steps:
   uses: signpath/github-action-submit-signing-request@v0.3
       with:
         api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
-        organization-id: '<SignPath organization id>'
-        project-slug: '<SignPath project slug>'
-        signing-policy-slug: '<SignPath signing policy slug>'
-        github-artifact-id: '${{steps.<upload-artifact-step-id>.outputs.artifact-id}}'
+        organization-id: 'e9e78494-5dd9-44a3-b3f8-3b7d1ace4efa'
+        project-slug: 'Test_project'
+        signing-policy-slug: 'release-signing'
+        github-artifact-name: 'test-artifact'
         wait-for-completion: true
-        output-artifact-directory: '<Destination path for the signed artifact>'
-        parameters: |
-          Version: ${{ toJSON(vars.version) }}
-          Release_Tag: "v1.0"
+        output-artifact-directory: './test-artifact-signed'
 ```
 
 #### Sign published artifact and continue workflow execution (do not download the signed artifact)
@@ -57,27 +53,30 @@ steps:
 ```yaml
 steps:
 - id: optional_step_id
-  uses: signpath/github-action-submit-signing-request@v0.3
+  uses: signpath/github-action-submit-signing-request@v0.4
       with:
         api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
-        organization-id: '<SignPath organization id>'
-        project-slug: '<SignPath project slug>'
-        signing-policy-slug: '<SignPath policy slug>'
-        github-artifact-id: '${{steps.<upload-artifact-step-id>.outputs.artifact-id}}'
+        organization-id: 'e9e78494-5dd9-44a3-b3f8-3b7d1ace4efa'
+        project-slug: 'Test_project'
+        signing-policy-slug: 'release-signing'
+        github-artifact-name: 'test-artifact'
         wait-for-completion: false
 ```
 
-#### Use output parameters
+#### Use outputs
 
-The action supports the following output parameters:
-- `signing-request-id`: The id of the newly created signing request
-- `signing-request-web-url`: The url of the signing request in SignPath
-- `signpath-api-url`: The base API url of the SignPath API
-- `signed-artifact-download-url`: The url of the signed artifact in SignPath
+The action sets the following output variables:
+
+| Variable                       | Description |
+| ------                         | ------      |
+| `signing-request-id`           | The id of the newly created signing request
+| `signing-request-web-url`      | The url of the signing request in SignPath
+| `signpath-api-url`             | The base API url of the SignPath API
+| `signed-artifact-download-url` | The url of the signed artifact in SignPath
 
 You can use the output parameters in the following way:
 ```yaml
     steps:
     - name: Print the signing request id
-      run:  echo "Output [${{steps.<submit_signing_request_step_id>.outputs.signing-request-id }}]"
+      run:  echo "Output ${{steps.<submit_signing_request_step_id>.outputs.signing-request-id }}"
 ```
