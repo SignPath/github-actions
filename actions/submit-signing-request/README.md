@@ -37,7 +37,7 @@ See also [action.yml](action.yml)
 ```yaml
 steps:
 - id: optional_step_id
-  uses: signpath/github-action-submit-signing-request@v0.3
+  uses: signpath/github-action-submit-signing-request@v0.4
       with:
         api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
         organization-id: 'e9e78494-5dd9-44a3-b3f8-3b7d1ace4efa'
