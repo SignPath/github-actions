@@ -27,7 +27,7 @@ The _Github Actions Trusted Build System_ must be enabled in the organization an
 | `wait-for-completion-timeout-in-seconds`      | -                  | Maximum time in seconds that the action will wait for the signing request to complete. Defaults to 10 minutes.
 | `service-unavailable-timeout-in-seconds`      | -                  | Total time in seconds that the action will wait for a single service call to succeed (across several retries). Defaults to 10 minutes.
 | `download-signed-artifact-timeout-in-seconds` | -                  | HTTP timeout when downloading the signed artifact. Defaults to 5 minutes.
-| `parameters`                                  | -                  | Multiline-string of values that map to user-defined parameters in the Artifact Configuration. Use one line per parameter with the format <name>: "<value>" where <value> needs to be a valid JSON string.
+| `parameters`                                  | -                  | Multiline-string of values that map to user-defined parameters in the Artifact Configuration. Use one line per parameter with the format `<name>: "<value>"` where `<value>` needs to be a valid JSON string.
 
 See also [action.yml](action.yml)
 
