@@ -7,7 +7,7 @@ This repository contains the Github Action `submit-signing-request` that can be 
 
 ## Prerequisite
 
-The _Github Actions Trusted Build System_ must be enabled in the organization and linked to the respective project. See the respective [SignPath documentation](https://about.signpath.io/redirects/connectors/trusted-build-system-configuration).
+The _Github Actions Trusted Build System_ must be enabled in the organization and linked to the respective project. See the respective [SignPath documentation](https://about.signpath.io/redirects/connectors/trusted-build-system-configuration). Note that the used artifact configuration must have a `zip-file` element at its root, as all artifacts are packaged as ZIP archives on GitHub by default.
 
 ## Action parameters
 
