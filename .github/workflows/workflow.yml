@@ -17,8 +17,10 @@ jobs:
     - name: checkout
       uses: actions/checkout@v4
 
-    - name: install dev dependencies
-      run: npm install
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: npm
 
     - name: build the actions
       run: npm run build
@@ -36,3 +38,4 @@ jobs:
         create-target-branch-if-needed: true
         commit-message: Build from - ${{ github.sha }}. Original commit message - ${{ github.event.head_commit.message }}
         target-branch: ${{ github.ref_name  }}
+        user-email: actions@github.com
