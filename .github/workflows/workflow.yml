@@ -21,7 +21,9 @@ jobs:
       with:
         node-version: 20
         cache: npm
-
+        
+    - name: install dev dependencies
+      run: npm install
     - name: build the actions
       run: npm run build
 
