@@ -25,11 +25,11 @@ inputs:
     description: 'Id of the Github Actions artifact. Use `steps.<step-id>.outputs.artifact-id` from the preceding actions/upload-artifact action step.'
     required: true
   github-token:
-    description: 'GitHub access token used to read job details and download the artifact. Defaults to secrets.GITHUB_TOKEN. Requires the "action:read" and "content:read" permissions. Note: This token will be stored (encrypted) on SignPath.io.'
+    description: 'GitHub access token used to read job details and download the artifact. Defaults to the [`secrets.GITHUB_TOKEN`](https://docs.github.com/en/actions/security-guides/automatic-token-authentication). See _Token permissions_ section in the README.'
     default: ${{ github.token }}
     required: false
   github-extended-verification-token:
-    description: 'Token used to query the runners API. Only required if larger runners are used. Requires the organization_self_hosted_runners:read permission'
+    description: 'Optional separate token for extended validations. See _Token permissions_ section in the README.'
     required: false
   parameters:
     description: 'Multiline-string of values that map to user-defined parameters in the Artifact Configuration. Use one line per parameter with the format <name>: "<value>" where <value> needs to be a valid JSON string.'
