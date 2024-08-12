@@ -22,8 +22,7 @@ The _Github Actions Trusted Build System_ must be enabled in the organization an
 | `github-artifact-id`                          | :heavy_check_mark: | Id of the Github Actions artifact. Must be uploaded using the [actions/upload-artifact](https://github.com/actions/upload-artifact) v4+ action before it can be signed. Use `{{ steps.<step-id>.outputs.artifact-id }}` from the preceding actions/upload-artifact action step.
 | `wait-for-completion`                         | -                  | If true, the action will wait for the signing request to complete. Defaults to `true`.
 | `output-artifact-directory`                   | -                  | Path to where the signed artifact will be extracted. If not specified, the task will not download the signed artifact from SignPath.
-| `github-token`                                | -                  | GitHub access token used to read job details and download the artifact. Defaults to the [`secrets.GITHUB_TOKEN`](https://docs.github.com/en/actions/security-guides/automatic-token-authentication). Requires the `action:read` and `content:read` permissions. _Note: This token will be stored (encrypted) on SignPath.io._
-| `github-extended-verification-token`          | -                  | Token used to query the runners API. Only required if larger runners are used. Requires the `organization_self_hosted_runners:read` permission.
+| `github-token`                                | -                  | GitHub access token used to read job details and download the artifact. Defaults to the [`secrets.GITHUB_TOKEN`](https://docs.github.com/en/actions/security-guides/automatic-token-authentication). Requires the `action:read` and `content:read` permissions.
 | `wait-for-completion-timeout-in-seconds`      | -                  | Maximum time in seconds that the action will wait for the signing request to complete. Defaults to 10 minutes.
 | `service-unavailable-timeout-in-seconds`      | -                  | Total time in seconds that the action will wait for a single service call to succeed (across several retries). Defaults to 10 minutes.
 | `download-signed-artifact-timeout-in-seconds` | -                  | HTTP timeout when downloading the signed artifact. Defaults to 5 minutes.
@@ -33,12 +32,12 @@ See also [action.yml](action.yml)
 
 ## Samples
 
-### Sign published artifact and download the signed artifact back to the build agent file system
+#### Sign published artifact and download the signed artifact back to the build agent file system
 
 ```yaml
 steps:
 - id: optional_step_id
-  uses: signpath/github-action-submit-signing-request@v0.4
+  uses: signpath/github-action-submit-signing-request@v1
       with:
         api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
         organization-id: '<SignPath organization id>'
@@ -57,7 +56,7 @@ steps:
 ```yaml
 steps:
 - id: optional_step_id
-  uses: signpath/github-action-submit-signing-request@v0.4
+  uses: signpath/github-action-submit-signing-request@v1
       with:
         api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
         organization-id: '<SignPath organization id>'
@@ -67,7 +66,7 @@ steps:
         wait-for-completion: false
 ```
 
-#### Use output parameters
+### Use output parameters
 
 The action supports the following output parameters:
 - `signing-request-id`: The id of the newly created signing request
