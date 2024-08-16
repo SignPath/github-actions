@@ -1,5 +1,8 @@
 name: 'Submit a Signing Request'
 author: 'SignPath GmbH'
+branding:
+  icon: "alert-triangle"
+  color: "orange"
 description: 'Submits signing request to SignPath and downloads the signed artifact'
 inputs:
   connector-url:
