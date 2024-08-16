@@ -1,12 +1,10 @@
-# SignPath `github-action-submit-signing-request`
+Github Action `submit-signing-request` to submit a signing request to [SignPath.io](https://about.signpath.io).
 
-This repository contains the Github Action `submit-signing-request` that can be used to submit a signing request to [SignPath.io](https://about.signpath.io).
+# Prerequisites
 
-## Prerequisite
+The _Github Actions Trusted Build System_ must be enabled in the organization and linked to the respective project. See the [SignPath documentation](https://about.signpath.io/redirects/connectors/trusted-build-system-configuration). Note that the used artifact configuration must have a `zip-file` element at its root, as all artifacts are packaged as ZIP archives on GitHub by default.
 
-The _Github Actions Trusted Build System_ must be enabled in the organization and linked to the respective project. See the respective [SignPath documentation](https://about.signpath.io/redirects/connectors/trusted-build-system-configuration). Note that the used artifact configuration must have a `zip-file` element at its root, as all artifacts are packaged as ZIP archives on GitHub by default.
-
-## Action parameters
+# Action parameters
 
 | Parameter                                     | Required           | Description |
 | ----                                          | -                  | ------      |
@@ -27,7 +25,7 @@ The _Github Actions Trusted Build System_ must be enabled in the organization an
 
 See also [action.yml](action.yml)
 
-## Samples
+# Samples
 
 #### Sign published artifact and download the signed artifact back to the build agent file system
 
@@ -63,7 +61,7 @@ steps:
         wait-for-completion: false
 ```
 
-### Use output parameters
+## Use output parameters
 
 The action supports the following output parameters:
 - `signing-request-id`: The id of the newly created signing request
