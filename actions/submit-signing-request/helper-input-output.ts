@@ -35,10 +35,6 @@ export class HelperInputOutput {
         return core.getInput('github-token', { required: true });
     }
 
-    get gitHubExtendedVerificationToken(): string {
-        return core.getInput('github-extended-verification-token', { required: false });
-    }
-
     get parameters(): {name:string, value: string}[] {
         const value = core.getInput('parameters', { required: false });
         return parseUserDefinedParameters(value);

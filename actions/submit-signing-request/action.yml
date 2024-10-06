@@ -31,9 +31,6 @@ inputs:
     description: 'GitHub access token used to read job details and download the artifact. Defaults to the [`secrets.GITHUB_TOKEN`](https://docs.github.com/en/actions/security-guides/automatic-token-authentication).'
     default: ${{ github.token }}
     required: false
-  github-extended-verification-token:
-    description: 'Preview only: Contact SignPath support for details.'
-    required: false
   parameters:
     description: 'Multiline-string of values that map to user-defined parameters in the Artifact Configuration. Use one line per parameter with the format <name>: "<value>" where <value> needs to be a valid JSON string.'
     required: false

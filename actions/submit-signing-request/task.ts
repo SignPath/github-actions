@@ -304,7 +304,6 @@ export class Task {
             gitHubRepository: process.env.GITHUB_REPOSITORY,
             gitHubRepositoryOwner: process.env.GITHUB_REPOSITORY_OWNER,
             gitHubToken: this.helperInputOutput.gitHubToken,
-            gitHubExtendedVerificationToken: this.helperInputOutput.gitHubExtendedVerificationToken,
             signPathOrganizationId: this.helperInputOutput.organizationId,
             signPathProjectSlug: this.helperInputOutput.projectSlug,
             signPathSigningPolicySlug: this.helperInputOutput.signingPolicySlug,
