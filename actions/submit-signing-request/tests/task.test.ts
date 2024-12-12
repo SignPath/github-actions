@@ -9,6 +9,7 @@ import { HelperInputOutput } from '../helper-input-output';
 import { HelperArtifactDownload } from '../helper-artifact-download';
 import axiosRetry from 'axios-retry';
 import { Config } from '../config';
+import { log } from 'console';
 
 const testSignPathApiToken = 'TEST_TOKEN';
 const testSigningRequestId = 'TEST_ID';
@@ -59,7 +60,8 @@ beforeEach(() => {
         isFinalStatus: true,
         status: 'Completed',
         unsignedArtifactLink: testUnsignedArtifactLink,
-        signedArtifactLink: testSignedArtifactLink
+        signedArtifactLink: testSignedArtifactLink,
+        logs: [ { message: 'TEST_MESSAGE', level: 'Information' } ]
     };
 
     const getSigningRequestResponse = submitSigningRequestResponse;

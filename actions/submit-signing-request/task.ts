@@ -306,7 +306,6 @@ export class Task {
                         core.debug(log.message);
                         break;
                     case LogLevelInformation:
-                        console.log('asdasdasdasdasd');
                         core.info(log.message);
                         break;
                     case LogLevelWarning:
