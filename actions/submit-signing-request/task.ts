@@ -87,8 +87,8 @@ export class Task {
             .data;
 
         this.checkResponseStructure(response);
-        this.checkCiSystemValidationResult(response.validationResult);
         this.redirectConnectorLogsToActionLogs(response.logs);
+        this.checkCiSystemValidationResult(response.validationResult);
 
         const signingRequestUrlObj  = url.parse(response.signingRequestUrl);
         this.urlBuilder.signPathBaseUrl = signingRequestUrlObj.protocol + '//' + signingRequestUrlObj.host;
@@ -315,7 +315,7 @@ export class Task {
                         core.error(log.message);
                         break;
                     default:
-                        core.info(log.message);
+                        core.info(`${log.level}:${log.message}`);
                         break;
                 }
             });
