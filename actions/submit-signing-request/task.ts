@@ -4,7 +4,7 @@ import * as core from '@actions/core';
 import * as moment from 'moment';
 import url from 'url';
 
-import { SubmitSigningRequestResult, ValidationResult } from './dtos/submit-signing-request-result';
+import { LogEntry, LogLevelDebug, LogLevelError, LogLevelInformation, LogLevelWarning, SubmitSigningRequestResult, ValidationResult } from './dtos/submit-signing-request-result';
 import { buildSignPathAuthorizationHeader, executeWithRetries, httpErrorResponseToText } from './utils';
 import { SignPathUrlBuilder } from './signpath-url-builder';
 import { SigningRequestDto } from './dtos/signing-request';
@@ -88,6 +88,7 @@ export class Task {
 
         this.checkResponseStructure(response);
         this.checkCiSystemValidationResult(response.validationResult);
+        this.redirectConnectorLogsToActionLogs(response.logs);
 
         const signingRequestUrlObj  = url.parse(response.signingRequestUrl);
         this.urlBuilder.signPathBaseUrl = signingRequestUrlObj.protocol + '//' + signingRequestUrlObj.host;
@@ -292,7 +293,32 @@ export class Task {
 
             // if neither validationResult nor signingRequestId are present,
             // then the response might be not from the connector
+            core.error(`Unexpected response from the SignPath connector: ${JSON.stringify(response)}`);
             throw new Error(`SignPath signing request was not created. Please make sure that connector-url is pointing to the SignPath GitHub Actions connector endpoint.`);
+        }
+    }
+
+    private redirectConnectorLogsToActionLogs(logs: LogEntry[]): void {
+        if (logs && logs.length > 0) {
+            logs.forEach(log => {
+                switch (log.level) {
+                    case LogLevelDebug:
+                        core.debug(log.message);
+                        break;
+                    case LogLevelInformation:
+                        core.info(log.message);
+                        break;
+                    case LogLevelWarning:
+                        core.warning(log.message);
+                        break;
+                    case LogLevelError:
+                        core.error(log.message);
+                        break;
+                    default:
+                        core.info(log.message);
+                        break;
+                }
+            });
         }
     }
 
