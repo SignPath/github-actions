@@ -24,6 +24,7 @@ const testOrganizationId = 'TEST_ORGANIZATION_ID';
 const testProjectSlug = 'TEST_PROJECT_SLUG';
 const testSigningPolicySlug = 'TEST_POLICY_SLUG';
 const testGitHubToken = 'TEST_GITHUB_TOKEN';
+const testConnectorLogMessage = 'TEST_CONNECTOR_LOG_MESSAGE';
 
 const defaultTestInputMap = {
     'wait-for-completion': 'true',
@@ -61,7 +62,7 @@ beforeEach(() => {
         status: 'Completed',
         unsignedArtifactLink: testUnsignedArtifactLink,
         signedArtifactLink: testSignedArtifactLink,
-        logs: [ { message: 'TEST_MESSAGE', level: 'Information' } ]
+        logs: [ { message: testConnectorLogMessage, level: 'Information' } ]
     };
 
     const getSigningRequestResponse = submitSigningRequestResponse;
@@ -145,7 +146,7 @@ it('test that the signing request was not submitted due to validation errors', a
             return value.includes('TEST_ERROR');
         }));
     // check that howToFix message was logged
-    const infoLogStub = sandbox.stub(core, 'info')
+    const coreInfoStub = sandbox.stub(core, 'info')
         .withArgs(sinon.match((value:any) => {
             return value.includes('TEST_FIX');
         }));
@@ -153,7 +154,7 @@ it('test that the signing request was not submitted due to validation errors', a
     await task.run();
     assert.equal(setFailedStub.calledOnce, true);
     assert.equal(errorLogStub.called, true);
-    assert.equal(infoLogStub.called, true);
+    assert.equal(coreInfoStub.called, true);
 });
 
 it('test that the output variables are set correctly', async () => {
@@ -162,6 +163,15 @@ it('test that the output variables are set correctly', async () => {
     assert.equal(setOutputStub.calledWith('signing-request-web-url', testSigningRequestUrl), true);
     assert.equal(setOutputStub.calledWith('signpath-api-url', testSignPathUrl + '/API'), true);
     assert.equal(setOutputStub.calledWith('signed-artifact-download-url', testSignedArtifactLink), true);
+});
+
+it('connector logs logged to the build log', async () => {
+    const coreInfoStub = sandbox.stub(core, 'info')
+        .withArgs(sinon.match((value:any) => {
+            return value.includes(testConnectorLogMessage);
+        }));
+    await task.run();
+    assert.equal(coreInfoStub.called, true);
 });
 
 it('test that the connectors url has api version', async () => {
