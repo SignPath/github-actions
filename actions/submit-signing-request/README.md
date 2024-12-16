@@ -32,7 +32,7 @@ See also [action.yml](action.yml)
 ```yaml
 steps:
 - id: optional_step_id
-  uses: signpath/github-action-submit-signing-request@v1
+  uses: signpath/github-action-submit-signing-request@v1.1
       with:
         api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
         organization-id: '<SignPath organization id>'
@@ -51,7 +51,7 @@ steps:
 ```yaml
 steps:
 - id: optional_step_id
-  uses: signpath/github-action-submit-signing-request@v1
+  uses: signpath/github-action-submit-signing-request@v1.1
       with:
         api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
         organization-id: '<SignPath organization id>'
