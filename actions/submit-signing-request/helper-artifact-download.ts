@@ -67,10 +67,10 @@ export class HelperArtifactDownload {
         core.info(`The signed artifact has been successfully downloaded from SignPath and extracted to ${targetDirectory}`);
     }
 
-    private resolveOrCreateDirectory(relativePath:string): string {
+    private resolveOrCreateDirectory(directoryPath:string): string {
         const workingDirectory =  process.env.GITHUB_WORKSPACE as string;
-        const absolutePath = path.isAbsolute(relativePath) ? relativePath :
-            path.join(workingDirectory as string, relativePath);
+        const absolutePath = path.isAbsolute(directoryPath) ? directoryPath :
+            path.join(workingDirectory as string, directoryPath);
 
         if (!fs.existsSync(absolutePath)) {
             core.info(`Directory "${absolutePath}" does not exist and will be created`);
