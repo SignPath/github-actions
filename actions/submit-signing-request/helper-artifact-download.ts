@@ -67,7 +67,7 @@ export class HelperArtifactDownload {
         core.info(`The signed artifact has been successfully downloaded from SignPath and extracted to ${targetDirectory}`);
     }
 
-    private resolveOrCreateDirectory(directoryPath:string): string {
+    public resolveOrCreateDirectory(directoryPath:string): string {
         const workingDirectory =  process.env.GITHUB_WORKSPACE as string;
         const absolutePath = path.isAbsolute(directoryPath) ? directoryPath :
             path.join(workingDirectory as string, directoryPath);

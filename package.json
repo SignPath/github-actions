@@ -17,6 +17,7 @@
     "@types/node": "^18.7.23",
     "@types/q": "^1.5.5",
     "@types/sinon": "^10.0.13",
+    "@types/uuid": "^10.0.0",
     "@vercel/ncc": "^0.36.1",
     "chai": "^4.3.7",
     "minimist": "^1.2.6",
