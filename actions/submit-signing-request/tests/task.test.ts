@@ -59,10 +59,10 @@ beforeEach(() => {
         status: 'Completed',
         unsignedArtifactLink: "unused",
         signedArtifactLink: "unused",
-        logs: [ { message: testConnectorLogMessage, level: 'Information' } ]
+        logs: [{ message: testConnectorLogMessage, level: 'Information' }]
     };
 
-    const getSigningRequestStatusResponse : SigningRequestStatusDto = {
+    const getSigningRequestStatusResponse: SigningRequestStatusDto = {
         status: submitSigningRequestResponse.status,
         hasArtifactBeenDownloadedBySignPathInCaseOfArtifactRetrieval: true,
         isFinalStatus: true,
@@ -107,9 +107,9 @@ it('test that the task fails if the signing request submit fails', async () => {
 
 it('test that the task fails if the signing request has "Failed" as a final status', async () => {
     const setFailedStub = sandbox.stub(core, 'setFailed')
-        .withArgs(sinon.match((value:any) => {
+        .withArgs(sinon.match((value: any) => {
             return value.includes('TEST_FAILED')
-            && value.includes('The signing request is not completed.');
+                && value.includes('The signing request is not completed.');
         }));
 
     const failedStatusSigningRequestResponse = {
@@ -121,7 +121,7 @@ it('test that the task fails if the signing request has "Failed" as a final stat
 
     await task.run();
     assert.equal(setFailedStub.calledOnce, true, 'setFailed should be called once');
- });
+});
 
 it('test that the signing request was not submitted due to validation errors', async () => {
     const submitSigningRequestValidationErrorResponse = {
@@ -138,17 +138,17 @@ it('test that the signing request was not submitted due to validation errors', a
     sandbox.stub(axios, 'post').resolves({ data: submitSigningRequestValidationErrorResponse });
     // check that task was marked as failed, because of validation errors
     const setFailedStub = sandbox.stub(core, 'setFailed')
-        .withArgs(sinon.match((value:any) => {
+        .withArgs(sinon.match((value: any) => {
             return value.includes('CI system validation failed');
         }));
     // check that error message was logged
     const errorLogStub = sandbox.stub(core, 'error')
-        .withArgs(sinon.match((value:any) => {
+        .withArgs(sinon.match((value: any) => {
             return value.includes('TEST_ERROR');
         }));
     // check that howToFix message was logged
     const coreInfoStub = sandbox.stub(core, 'info')
-        .withArgs(sinon.match((value:any) => {
+        .withArgs(sinon.match((value: any) => {
             return value.includes('TEST_FIX');
         }));
 
@@ -160,19 +160,19 @@ it('test that the signing request was not submitted due to validation errors', a
 
 it('test that the output variables are set correctly', async () => {
     await task.run();
-    assert.equal(setOutputStub.calledWith('signing-request-id',  testSigningRequestId), true);
+    assert.equal(setOutputStub.calledWith('signing-request-id', testSigningRequestId), true);
     assert.equal(setOutputStub.calledWith('signing-request-web-url', testSigningRequestUrl), true);
-    
+
     // TODO: drop?
     // assert.equal(setOutputStub.calledWith('signpath-api-url', testSignPathUrl + '/API'), true);
 
     // TODO:
-    //assert.equal(setOutputStub.calledWith('signed-artifact-download-url', testSignedArtifactLink), true);
+    // assert.equal(setOutputStub.calledWith('signed-artifact-download-url', testSignedArtifactLink), true);
 });
 
 it('connector logs logged to the build log', async () => {
     const coreInfoStub = sandbox.stub(core, 'info')
-        .withArgs(sinon.match((value:any) => {
+        .withArgs(sinon.match((value: any) => {
             return value.includes(testConnectorLogMessage);
         }));
     await task.run();
@@ -182,7 +182,7 @@ it('connector logs logged to the build log', async () => {
 it('test that the connectors url has api version', async () => {
     await task.run();
     assert.equal(axiosPostStub.calledWith(
-        sinon.match((value:any) => {
+        sinon.match((value: any) => {
             return value.indexOf('api-version') !== -1;
         })), true);
 });
@@ -191,7 +191,7 @@ it('test if input variables are passed through', async () => {
     await task.run();
     assert.equal(axiosPostStub.calledWith(
         sinon.match.any,
-        sinon.match((value:any) => {
+        sinon.match((value: any) => {
             return value.artifactId === testGitHubArtifactId
                 && value.signPathProjectSlug === testProjectSlug
                 && value.signPathSigningPolicySlug === testSigningPolicySlug
@@ -210,7 +210,7 @@ it('task fails if the submit request connector fails', async () => {
         throw { response: { data: httpCallError } };
     });
     const setFailedStub = sandbox.stub(core, 'setFailed')
-        .withArgs(sinon.match((value:string) => {
+        .withArgs(sinon.match((value: string) => {
             return value.indexOf(httpCallError) !== -1;
         }));
     await task.run();
@@ -244,7 +244,7 @@ it('if submit signing request fails with 429,502,503,504 the task retries', asyn
     await task.run();
 
     // signing request id should be set in the output
-    assert.equal(setOutputStub.calledWith('signing-request-id',  retryTestId), true);
+    assert.equal(setOutputStub.calledWith('signing-request-id', retryTestId), true);
 });
 
 it('no retries for http code 500', async () => {
@@ -265,7 +265,7 @@ it('task waits for unsigned artifact being downloaded by SignPath before complet
 
     // non-default input map, with 'wait-for-completion' set to 'false'
     getInputStub.restore();
-    const input = Object.assign({ }, defaultTestInputMap);
+    const input = Object.assign({}, defaultTestInputMap);
     input['wait-for-completion'] = 'false';
     getInputStub = sandbox.stub(core, 'getInput').callsFake((paramName) => {
         return input[paramName as keyof typeof input] || 'test';
@@ -273,7 +273,7 @@ it('task waits for unsigned artifact being downloaded by SignPath before complet
 
     const addGetRequestDataResponse = (hasArtifactBeenDownloadedBySignPathInCaseOfArtifactRetrieval: boolean) => {
         return nock(testConnectorUrl).get(uri => uri.includes('SigningRequests')).once().reply(200, {
-            hasArtifactBeenDownloadedBySignPathInCaseOfArtifactRetrieval: hasArtifactBeenDownloadedBySignPathInCaseOfArtifactRetrieval
+            hasArtifactBeenDownloadedBySignPathInCaseOfArtifactRetrieval
         });
     }
 
@@ -308,7 +308,7 @@ it('if the signing request status is final, the task stops checking for artifact
 
     // non-default input map, with 'wait-for-completion' set to 'false'
     getInputStub.restore();
-    const input = Object.assign({ }, defaultTestInputMap);
+    const input = Object.assign({}, defaultTestInputMap);
     input['wait-for-completion'] = 'false';
     getInputStub = sandbox.stub(core, 'getInput').callsFake((paramName) => {
         return input[paramName as keyof typeof input] || 'test';
