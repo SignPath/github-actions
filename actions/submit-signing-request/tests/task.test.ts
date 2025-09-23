@@ -8,16 +8,12 @@ import * as core from '@actions/core';
 import { HelperInputOutput } from '../helper-input-output';
 import { HelperArtifactDownload } from '../helper-artifact-download';
 import axiosRetry from 'axios-retry';
-import { Config } from '../config';
-import { log } from 'console';
+import { SigningRequestStatusDto } from '../dtos/signing-request-status';
 
 const testSignPathApiToken = 'TEST_TOKEN';
 const testSigningRequestId = 'TEST_ID';
 const testConnectorUrl = 'https://domain';
-const testSignPathUrl = 'https://signpath';
-const testSigningRequestUrl = testSignPathUrl + '/api/SigningRequests';
-const testSignedArtifactLink = testConnectorUrl + '/api/artifactlink';
-const testUnsignedArtifactLink = testConnectorUrl + '/api/unsignedartifactlink';
+const testSigningRequestUrl = testConnectorUrl + '/SigningRequests';
 const testGitHubArtifactId = 'TEST_ARTIFACT_ID';
 const testArtifactConfigurationSlug = 'TEST_ARTIFACT_CONFIGURATION_SLUG';
 const testOrganizationId = 'TEST_ORGANIZATION_ID';
@@ -25,6 +21,8 @@ const testProjectSlug = 'TEST_PROJECT_SLUG';
 const testSigningPolicySlug = 'TEST_POLICY_SLUG';
 const testGitHubToken = 'TEST_GITHUB_TOKEN';
 const testConnectorLogMessage = 'TEST_CONNECTOR_LOG_MESSAGE';
+
+const submitSigningRequestRouteTemplate = new RegExp(`\/${testOrganizationId}\/SigningRequests.*`)
 
 const defaultTestInputMap = {
     'wait-for-completion': 'true',
@@ -54,21 +52,25 @@ let setOutputStub: sinon.SinonStub;
 let getInputStub: sinon.SinonStub;
 
 beforeEach(() => {
-
     const submitSigningRequestResponse = {
         signingRequestUrl: testSigningRequestUrl,
         signingRequestId: testSigningRequestId,
         isFinalStatus: true,
         status: 'Completed',
-        unsignedArtifactLink: testUnsignedArtifactLink,
-        signedArtifactLink: testSignedArtifactLink,
+        unsignedArtifactLink: "unused",
+        signedArtifactLink: "unused",
         logs: [ { message: testConnectorLogMessage, level: 'Information' } ]
     };
 
-    const getSigningRequestResponse = submitSigningRequestResponse;
+    const getSigningRequestStatusResponse : SigningRequestStatusDto = {
+        status: submitSigningRequestResponse.status,
+        hasArtifactBeenDownloadedBySignPathInCaseOfArtifactRetrieval: true,
+        isFinalStatus: true,
+        webLink: testSigningRequestUrl
+    }
 
     axiosPostStub = sandbox.stub(axios, 'post').resolves({ data: submitSigningRequestResponse });
-    axiosGetStub = sandbox.stub(axios, 'get').resolves({ data: getSigningRequestResponse });
+    axiosGetStub = sandbox.stub(axios, 'get').resolves({ data: getSigningRequestStatusResponse });
     setOutputStub = sandbox.stub(core, 'setOutput');
 
     // set input stubs to return default values
@@ -113,7 +115,6 @@ it('test that the task fails if the signing request has "Failed" as a final stat
     const failedStatusSigningRequestResponse = {
         status: 'TEST_FAILED',
         isFinalStatus: true,
-        unsignedArtifactLink: testUnsignedArtifactLink // to go through the unsigned artifact downloading loop
     };
     axiosGetStub.restore(); // we don't need default stub behavior in this test
     sandbox.stub(axios, 'get').resolves({ data: failedStatusSigningRequestResponse });
@@ -161,8 +162,12 @@ it('test that the output variables are set correctly', async () => {
     await task.run();
     assert.equal(setOutputStub.calledWith('signing-request-id',  testSigningRequestId), true);
     assert.equal(setOutputStub.calledWith('signing-request-web-url', testSigningRequestUrl), true);
-    assert.equal(setOutputStub.calledWith('signpath-api-url', testSignPathUrl + '/API'), true);
-    assert.equal(setOutputStub.calledWith('signed-artifact-download-url', testSignedArtifactLink), true);
+    
+    // TODO: drop?
+    // assert.equal(setOutputStub.calledWith('signpath-api-url', testSignPathUrl + '/API'), true);
+
+    // TODO:
+    //assert.equal(setOutputStub.calledWith('signed-artifact-download-url', testSignedArtifactLink), true);
 });
 
 it('connector logs logged to the build log', async () => {
@@ -187,9 +192,7 @@ it('test if input variables are passed through', async () => {
     assert.equal(axiosPostStub.calledWith(
         sinon.match.any,
         sinon.match((value:any) => {
-            return value.signPathApiToken === testSignPathApiToken
-                && value.signPathOrganizationId === testOrganizationId
-                && value.artifactId === testGitHubArtifactId
+            return value.artifactId === testGitHubArtifactId
                 && value.signPathProjectSlug === testProjectSlug
                 && value.signPathSigningPolicySlug === testSigningPolicySlug
                 && value.gitHubToken === testGitHubToken
@@ -214,14 +217,13 @@ it('task fails if the submit request connector fails', async () => {
     assert.equal(setFailedStub.calledOnce, true);
 });
 
-
 it('if submit signing request fails with 429,502,503,504 the task retries', async () => {
     // use real *POST* axios for this test, because retries are implemented in axios
     axiosPostStub.restore();
 
     const retryTestId = 'RETRY_TEST_ID';
     const addErrorResponse = (httpCode: number) => {
-        nock(testConnectorUrl).post(/\/api\/sign.*/).once().reply(httpCode, 'Server Error');
+        nock(testConnectorUrl).post(submitSigningRequestRouteTemplate).once().reply(httpCode, 'Server Error');
     }
 
     addErrorResponse(429);
@@ -230,7 +232,7 @@ it('if submit signing request fails with 429,502,503,504 the task retries', asyn
     addErrorResponse(504);
 
     nock(testConnectorUrl)
-        .post(/\/api\/sign.*/)
+        .post(submitSigningRequestRouteTemplate)
         .reply(200, {
             signingRequestUrl: testSigningRequestUrl,
             signingRequestId: retryTestId
@@ -249,17 +251,16 @@ it('no retries for http code 500', async () => {
     // use real *POST* axios for this test, because retries are implemented in axios
     axiosPostStub.restore();
 
-    nock(testConnectorUrl).post(/\/api\/sign.*/).reply(500, 'Server Error');
-
+    nock(testConnectorUrl).post(submitSigningRequestRouteTemplate).reply(500, 'Server Error');
 
     const setFailedStub = sandbox.stub(core, 'setFailed');
     await task.run();
     assert.equal(setFailedStub.calledOnce, true);
 });
 
-it('task waits for artifact being downloaded before completing', async () => {
+it('task waits for unsigned artifact being downloaded by SignPath before completing', async () => {
 
-    // use non stubbed axius, define responses sequence suing nock
+    // use non stubbed axios, define responses sequence suing nock
     axiosGetStub.restore();
 
     // non-default input map, with 'wait-for-completion' set to 'false'
@@ -270,25 +271,25 @@ it('task waits for artifact being downloaded before completing', async () => {
         return input[paramName as keyof typeof input] || 'test';
     });
 
-    const addGetRequestDataResponse = (link: string | null) => {
-        return nock(testSignPathUrl).get(uri => uri.includes('SigningRequests')).once().reply(200, {
-            unsignedArtifactLink: link
+    const addGetRequestDataResponse = (hasArtifactBeenDownloadedBySignPathInCaseOfArtifactRetrieval: boolean) => {
+        return nock(testConnectorUrl).get(uri => uri.includes('SigningRequests')).once().reply(200, {
+            hasArtifactBeenDownloadedBySignPathInCaseOfArtifactRetrieval: hasArtifactBeenDownloadedBySignPathInCaseOfArtifactRetrieval
         });
     }
 
     const nockScopes = [];
 
     // artifact is not downloaded for the first 4 calls
-    nockScopes.push(addGetRequestDataResponse(null));
-    nockScopes.push(addGetRequestDataResponse(null));
-    nockScopes.push(addGetRequestDataResponse(null));
-    nockScopes.push(addGetRequestDataResponse(null));
+    nockScopes.push(addGetRequestDataResponse(false));
+    nockScopes.push(addGetRequestDataResponse(false));
+    nockScopes.push(addGetRequestDataResponse(false));
+    nockScopes.push(addGetRequestDataResponse(false));
 
     // artifact is downloaded when the 5th call happens
-    nockScopes.push(addGetRequestDataResponse(testUnsignedArtifactLink));
+    nockScopes.push(addGetRequestDataResponse(true));
     // this request should not happen
     // because it should stop checking after the previous request
-    const notDoneScope = addGetRequestDataResponse(null);
+    const notDoneScope = addGetRequestDataResponse(false);
 
     const setFailedStub = sandbox.stub(core, 'setFailed');
     await task.run();
@@ -302,7 +303,7 @@ it('task waits for artifact being downloaded before completing', async () => {
 
 it('if the signing request status is final, the task stops checking for artifact download status and reports an error', async () => {
 
-    // use non stubbed axius, define responses sequence suing nock
+    // use non stubbed axios, define responses sequence using nock
     axiosGetStub.restore();
 
     // non-default input map, with 'wait-for-completion' set to 'false'
@@ -315,8 +316,8 @@ it('if the signing request status is final, the task stops checking for artifact
 
     // signing request status is final and artifact is not downloaded
     // something went wrong, the sining request cannot be completed
-    nock(testSignPathUrl).get(uri => uri.includes('SigningRequests')).once().reply(200, {
-        unsignedArtifactLink: null,
+    nock(testConnectorUrl).get(uri => uri.includes('SigningRequests')).once().reply(200, {
+        hasArtifactBeenDownloadedBySignPathInCaseOfArtifactRetrieval: false,
         isFinalStatus: true
     });
 

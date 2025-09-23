@@ -2,16 +2,15 @@ import axios, { AxiosError, AxiosResponse } from 'axios';
 import axiosRetry from 'axios-retry';
 import * as core from '@actions/core';
 import * as moment from 'moment';
-import url from 'url';
 
 import { LogEntry, LogLevelDebug, LogLevelError, LogLevelInformation, LogLevelWarning, SubmitSigningRequestResult, ValidationResult } from './dtos/submit-signing-request-result';
 import { buildSignPathAuthorizationHeader, executeWithRetries, httpErrorResponseToText } from './utils';
-import { SignPathUrlBuilder } from './signpath-url-builder';
-import { SigningRequestDto } from './dtos/signing-request';
+import { ConnectorUrlBuilder } from './connector-url-builder';
 import { HelperInputOutput } from './helper-input-output';
 import { taskVersion } from './version';
 import { HelperArtifactDownload } from './helper-artifact-download';
 import { Config } from './config';
+import { SigningRequestStatusDto } from './dtos/signing-request-status';
 
 // output variables
 // signingRequestId - the id of the newly created signing request
@@ -20,13 +19,14 @@ import { Config } from './config';
 // signingRequestDownloadUrl - the url of the signed artifact in SignPath
 
 export class Task {
-    urlBuilder: SignPathUrlBuilder;
+    urlBuilder: ConnectorUrlBuilder;
 
-    constructor (
+    constructor(
         private helperInputOutput: HelperInputOutput,
         private helperArtifactDownload: HelperArtifactDownload,
-        private config: Config) {
-        this.urlBuilder = new SignPathUrlBuilder(this.helperInputOutput.signPathConnectorUrl);
+        private config: Config
+    ) {
+        this.urlBuilder = new ConnectorUrlBuilder(this.helperInputOutput.signPathConnectorUrl, this.helperInputOutput.organizationId);
     }
 
     async run() {
@@ -37,11 +37,10 @@ export class Task {
             const signingRequestId = await this.submitSigningRequest();
 
             if (this.helperInputOutput.waitForCompletion) {
-                const signingRequest = await this.ensureSigningRequestCompleted(signingRequestId);
-                this.helperInputOutput.setSignedArtifactDownloadUrl(signingRequest.signedArtifactLink);
+                await this.ensureSigningRequestCompleted(signingRequestId);
 
-                if(this.helperInputOutput.outputArtifactDirectory) {
-                    await this.helperArtifactDownload.downloadSignedArtifact(signingRequest.signedArtifactLink);
+                if (this.helperInputOutput.outputArtifactDirectory) {
+                    await this.helperArtifactDownload.downloadSignedArtifact(this.urlBuilder.buildGetSignedArtifactUrl(signingRequestId));
                 }
             }
             else {
@@ -53,7 +52,7 @@ export class Task {
         }
     }
 
-    private async submitSigningRequest (): Promise<string> {
+    private async submitSigningRequest(): Promise<string> {
 
         core.info('Submitting the signing request to SignPath CI connector...');
 
@@ -63,15 +62,20 @@ export class Task {
         // call the signPath API to submit the signing request
         const response = (await axios
             .post<SubmitSigningRequestResult>(this.urlBuilder.buildSubmitSigningRequestUrl(),
-            submitRequestPayload,
-            { responseType: "json" })
+                submitRequestPayload,
+                {
+                    responseType: "json",
+                    headers: {
+                        "Authorization": buildSignPathAuthorizationHeader(this.helperInputOutput.signPathApiToken)
+                    }
+                })
             .catch((e: AxiosError) => {
 
-                if(e.code === AxiosError.ERR_BAD_REQUEST) {
+                if (e.code === AxiosError.ERR_BAD_REQUEST) {
 
                     const connectorResponse = e.response as AxiosResponse<SubmitSigningRequestResult>;
 
-                    if(connectorResponse.data.error) {
+                    if (connectorResponse.data.error) {
                         this.redirectConnectorLogsToActionLogs(connectorResponse.data.logs);
                         // when an error occurs in the validator the error details are in the validationResult
                         this.checkCiSystemValidationResult(connectorResponse.data.validationResult);
@@ -91,16 +95,15 @@ export class Task {
         this.redirectConnectorLogsToActionLogs(response.logs);
         this.checkCiSystemValidationResult(response.validationResult);
 
-        const signingRequestUrlObj  = url.parse(response.signingRequestUrl);
-        this.urlBuilder.signPathBaseUrl = signingRequestUrlObj.protocol + '//' + signingRequestUrlObj.host;
-
         core.info(`SignPath signing request has been successfully submitted`);
         core.info(`The signing request id is ${response.signingRequestId}`);
         core.info(`You can view the signing request here: ${response.signingRequestUrl}`);
 
         this.helperInputOutput.setSigningRequestId(response.signingRequestId);
         this.helperInputOutput.setSigningRequestWebUrl(response.signingRequestUrl);
-        this.helperInputOutput.setSignPathApiUrl(this.urlBuilder.signPathBaseUrl + '/API');
+
+        // TODO: think what to set as output
+        // this.helperInputOutput.setSignPathApiUrl(this.urlBuilder.signPathBaseUrl + '/API');
 
         return response.signingRequestId;
     }
@@ -115,8 +118,7 @@ export class Task {
 
             validationResult.errors.forEach(validationError => {
                 core.error(`${validationError.error}`);
-                if (validationError.howToFix)
-                {
+                if (validationError.howToFix) {
                     core.info(validationError.howToFix);
                 }
             });
@@ -127,16 +129,17 @@ export class Task {
         }
     }
 
+    // TODO: what the heck
     // if auto-generated GitHub Actions token (secrets.GITHUB_TOKEN) is used for artifact download,
     // ensure the workflow continues running until the download is complete.
     // The token is valid only for the workflow's duration
     private async ensureSignPathDownloadedUnsignedArtifact(signingRequestId: string): Promise<void> {
         core.info(`Waiting until SignPath downloaded the unsigned artifact...`);
-        const requestData = await (executeWithRetries<SigningRequestDto>(
+        const requestData = await (executeWithRetries<SigningRequestStatusDto>(
             async () => {
-                const signingRequestDto = await (this.getSigningRequest(signingRequestId)
+                const signingRequestDto = await (this.getSigningRequestStatus(signingRequestId)
                     .then(data => {
-                        if(!data.unsignedArtifactLink  && !data.isFinalStatus) {
+                        if (!data.hasArtifactBeenDownloadedBySignPathInCaseOfArtifactRetrieval && !data.isFinalStatus) {
                             core.info(`Checking the download status: not yet complete`);
                             // retry artifact download status check
                             return { retry: true };
@@ -149,9 +152,9 @@ export class Task {
             this.config.CheckArtifactDownloadStatusIntervalInSeconds * 1000,
             this.config.CheckArtifactDownloadStatusIntervalInSeconds * 1000));
 
-        if (!requestData.unsignedArtifactLink) {
+        if (!requestData.hasArtifactBeenDownloadedBySignPathInCaseOfArtifactRetrieval) {
 
-            if(!requestData.isFinalStatus) {
+            if (!requestData.isFinalStatus) {
                 const maxWaitingTime = moment.utc(this.helperInputOutput.waitForCompletionTimeoutInSeconds * 1000).format("hh:mm");
                 core.error(`We have exceeded the maximum waiting time, which is ${maxWaitingTime}, and the GitHub artifact is still not downloaded by SignPath`);
             } else {
@@ -166,21 +169,21 @@ export class Task {
         // artifact already downloaded by SignPath
     }
 
-    private async ensureSigningRequestCompleted(signingRequestId: string): Promise<SigningRequestDto> {
+    private async ensureSigningRequestCompleted(signingRequestId: string): Promise<SigningRequestStatusDto> {
         // check for status update
         core.info(`Checking the signing request status...`);
-        const requestData = await (executeWithRetries<SigningRequestDto>(
+        const requestData = await (executeWithRetries<SigningRequestStatusDto>(
             async () => {
 
-                const signingRequestDto = await (this.getSigningRequest(signingRequestId)
+                const signingRequestStatusDto = await (this.getSigningRequestStatus(signingRequestId)
                     .then(data => {
-                        if(data && !data.isFinalStatus) {
+                        if (data && !data.isFinalStatus) {
                             core.info(`The signing request status is ${data.status}, which is not a final status; after a delay, we will check again...`);
                             return { retry: true };
                         }
                         return { retry: false, result: data };
                     }));
-                return signingRequestDto;
+                return signingRequestStatusDto;
             },
             this.helperInputOutput.waitForCompletionTimeoutInSeconds * 1000,
             this.config.MinDelayBetweenSigningRequestStatusChecksInSeconds * 1000,
@@ -200,12 +203,11 @@ export class Task {
         return requestData;
     }
 
-    private async getSigningRequest(signingRequestId: string): Promise<SigningRequestDto> {
-        const requestStatusUrl = this.urlBuilder.buildGetSigningRequestUrl(
-            this.helperInputOutput.organizationId, signingRequestId);
+    private async getSigningRequestStatus(signingRequestId: string): Promise<SigningRequestStatusDto> {
+        const requestStatusUrl = this.urlBuilder.buildGetSigningRequestStatusUrl(signingRequestId);
 
-        const signingRequestDto = await axios
-            .get<SigningRequestDto>(
+        const signingRequestStatusDto = await axios
+            .get<SigningRequestStatusDto>(
                 requestStatusUrl,
                 {
                     responseType: "json",
@@ -220,7 +222,8 @@ export class Task {
                 throw new Error(httpErrorResponseToText(e));
             })
             .then(response => response.data);
-        return signingRequestDto;
+
+        return signingRequestStatusDto;
     }
 
     private configureAxios(): void {
@@ -249,22 +252,22 @@ export class Task {
         axiosRetry.isRetryableError = (error: AxiosError) => {
             let retryableHttpErrorCode = false;
 
-            if(error.response) {
-                if(error.response.status === 502
+            if (error.response) {
+                if (error.response.status === 502
                     || error.response.status === 503
                     || error.response.status === 504) {
                     retryableHttpErrorCode = true;
                     core.info(`SignPath REST API is temporarily unavailable (server responded with ${error.response.status}).`);
                 }
 
-                if(error.response.status === 429) {
+                if (error.response.status === 429) {
                     retryableHttpErrorCode = true;
                     core.info('SignPath REST API encountered too many requests.');
                 }
             }
 
             return (error.code !== 'ECONNABORTED' &&
-            (!error.response || retryableHttpErrorCode));
+                (!error.response || retryableHttpErrorCode));
         }
 
         // set retries
@@ -325,12 +328,10 @@ export class Task {
 
     private buildSigningRequestPayload(): any {
         return {
-            signPathApiToken: this.helperInputOutput.signPathApiToken,
             artifactId: this.helperInputOutput.githubArtifactId,
             gitHubWorkflowRunId: process.env.GITHUB_RUN_ID,
             gitHubRepository: process.env.GITHUB_REPOSITORY,
             gitHubToken: this.helperInputOutput.gitHubToken,
-            signPathOrganizationId: this.helperInputOutput.organizationId,
             signPathProjectSlug: this.helperInputOutput.projectSlug,
             signPathSigningPolicySlug: this.helperInputOutput.signingPolicySlug,
             signPathArtifactConfigurationSlug: this.helperInputOutput.artifactConfigurationSlug,

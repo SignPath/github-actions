@@ -1,7 +1,6 @@
-import { assert, expect } from "chai";
+import { assert } from "chai";
 import { HelperArtifactDownload } from "../helper-artifact-download"
 import * as path from 'path';
-import * as os from 'os';
 import * as uuid from 'uuid';
 import * as fs from 'fs'
 import { HelperInputOutput } from "../helper-input-output";
