@@ -5,7 +5,6 @@ var fs = require('fs');
 
 var argv = require('minimist')(process.argv.slice(2));
 
-
 var run = util.run;
 
 var CLI = {};
