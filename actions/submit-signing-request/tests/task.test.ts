@@ -22,6 +22,7 @@ const testSigningPolicySlug = 'TEST_POLICY_SLUG';
 const testGitHubToken = 'TEST_GITHUB_TOKEN';
 const testConnectorLogMessage = 'TEST_CONNECTOR_LOG_MESSAGE';
 
+const testSignedArtifactLink = `${testConnectorUrl}/${testOrganizationId}/SigningRequests/${testSigningRequestId}/SignedArtifact?api-version=1.0`
 const submitSigningRequestRouteTemplate = new RegExp(`\/${testOrganizationId}\/SigningRequests.*`)
 
 const defaultTestInputMap = {
@@ -87,7 +88,6 @@ beforeEach(() => {
         MaxDelayBetweenSigningRequestStatusChecksInSeconds: 0,
         CheckArtifactDownloadStatusIntervalInSeconds: 0
     });
-
 });
 
 afterEach(() => {
@@ -156,18 +156,6 @@ it('test that the signing request was not submitted due to validation errors', a
     assert.equal(setFailedStub.calledOnce, true);
     assert.equal(errorLogStub.called, true);
     assert.equal(coreInfoStub.called, true);
-});
-
-it('test that the output variables are set correctly', async () => {
-    await task.run();
-    assert.equal(setOutputStub.calledWith('signing-request-id', testSigningRequestId), true);
-    assert.equal(setOutputStub.calledWith('signing-request-web-url', testSigningRequestUrl), true);
-
-    // TODO: drop?
-    // assert.equal(setOutputStub.calledWith('signpath-api-url', testSignPathUrl + '/API'), true);
-
-    // TODO:
-    // assert.equal(setOutputStub.calledWith('signed-artifact-download-url', testSignedArtifactLink), true);
 });
 
 it('connector logs logged to the build log', async () => {
@@ -326,4 +314,12 @@ it('if the signing request status is final, the task stops checking for artifact
 
     // and successfully completed
     assert.equal(setFailedStub.called, true);
+});
+
+it('test that the output variables are set correctly', async () => {
+    await task.run();
+
+    assert.equal(setOutputStub.calledWith('signing-request-id', testSigningRequestId), true);
+    assert.equal(setOutputStub.calledWith('signing-request-web-url', testSigningRequestUrl), true);
+    assert.equal(setOutputStub.calledWith('signed-artifact-download-url', testSignedArtifactLink), true);
 });

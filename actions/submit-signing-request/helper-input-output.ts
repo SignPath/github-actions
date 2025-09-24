@@ -60,7 +60,6 @@ export class HelperInputOutput {
         return getInputNumber('service-unavailable-timeout-in-seconds', { required: true });
     }
 
-    // TODO: change to connector right?
     setSignedArtifactDownloadUrl(url: string):void {
         core.setOutput('signed-artifact-download-url', url);
     }
@@ -71,10 +70,5 @@ export class HelperInputOutput {
 
     setSigningRequestWebUrl(signingRequestUrl: string): void {
         core.setOutput('signing-request-web-url', signingRequestUrl);
-    }
-
-    // TODO: drop?
-    setSignPathApiUrl(signingRequestUrl: string): void {
-        core.setOutput('signpath-api-url', signingRequestUrl);
     }
 }
