@@ -1,5 +1,3 @@
-// TODO: write tests
-
 export class ConnectorUrlBuilder {
     private readonly apiVersion: string = "1.0";
     private readonly baseSigningRequestsRoute: string;

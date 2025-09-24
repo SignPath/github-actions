@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as nodeStreamZip from 'node-stream-zip';
 import axios, { AxiosError } from 'axios';
 import { HelperInputOutput } from "./helper-input-output";
-import { buildSignPathAuthorizationHeader, httpErrorResponseToText } from './utils';
+import { httpErrorResponseToText } from './utils';
 import { TimeoutStream } from './timeout-stream';
 
 
@@ -19,14 +19,11 @@ export class HelperArtifactDownload {
 
         const response = await axios.get(artifactDownloadUrl, {
             responseType: 'stream',
-            timeout: timeoutMs,
-            headers: {
-                Authorization: buildSignPathAuthorizationHeader(this.helperInputOutput.signPathApiToken)
-            }
+            timeout: timeoutMs
         })
-        .catch((e: AxiosError) => {
-            throw new Error(httpErrorResponseToText(e));
-        });
+            .catch((e: AxiosError) => {
+                throw new Error(httpErrorResponseToText(e));
+            });
 
         const targetDirectory = this.resolveOrCreateDirectory(this.helperInputOutput.outputArtifactDirectory);
 
@@ -67,8 +64,8 @@ export class HelperArtifactDownload {
         core.info(`The signed artifact has been successfully downloaded from SignPath and extracted to ${targetDirectory}`);
     }
 
-    public resolveOrCreateDirectory(directoryPath:string): string {
-        const workingDirectory =  process.env.GITHUB_WORKSPACE as string;
+    public resolveOrCreateDirectory(directoryPath: string): string {
+        const workingDirectory = process.env.GITHUB_WORKSPACE as string;
         const absolutePath = path.isAbsolute(directoryPath) ? directoryPath :
             path.join(workingDirectory as string, directoryPath);
 

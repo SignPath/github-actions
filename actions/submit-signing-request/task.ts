@@ -4,7 +4,7 @@ import * as core from '@actions/core';
 import * as moment from 'moment';
 
 import { LogEntry, LogLevelDebug, LogLevelError, LogLevelInformation, LogLevelWarning, SubmitSigningRequestResult, ValidationResult } from './dtos/submit-signing-request-result';
-import { buildSignPathAuthorizationHeader, executeWithRetries, httpErrorResponseToText } from './utils';
+import { executeWithRetries, httpErrorResponseToText } from './utils';
 import { ConnectorUrlBuilder } from './connector-url-builder';
 import { HelperInputOutput } from './helper-input-output';
 import { taskVersion } from './version';
@@ -15,18 +15,19 @@ import { SigningRequestStatusDto } from './dtos/signing-request-status';
 // output variables
 // signingRequestId - the id of the newly created signing request
 // signingRequestWebUrl - the url of the signing request in SignPath
-// signPathApiUrl - the base API url of the SignPath API
-// signingRequestDownloadUrl - the url of the signed artifact in SignPath
+// signingRequestDownloadUrl - the url of the signed artifact to retrieve via the connector
 
 export class Task {
-    urlBuilder: ConnectorUrlBuilder;
+    private readonly urlBuilder: ConnectorUrlBuilder;
+    private readonly userAgent: string;
 
     constructor(
-        private helperInputOutput: HelperInputOutput,
-        private helperArtifactDownload: HelperArtifactDownload,
-        private config: Config
+        private readonly helperInputOutput: HelperInputOutput,
+        private readonly helperArtifactDownload: HelperArtifactDownload,
+        private readonly config: Config
     ) {
         this.urlBuilder = new ConnectorUrlBuilder(this.helperInputOutput.signPathConnectorUrl, this.helperInputOutput.organizationId);
+        this.userAgent = `SignPath.SubmitSigningRequestGitHubAction/${taskVersion}(NodeJS/${process.version}; ${process.platform} ${process.arch}})`;
     }
 
     async run() {
@@ -54,20 +55,18 @@ export class Task {
 
     private async submitSigningRequest(): Promise<string> {
 
-        core.info('Submitting the signing request to SignPath CI connector...');
+        const submitSigningRequestUrl = this.urlBuilder.buildSubmitSigningRequestUrl();
+        core.info('Submitting the signing request to SignPath GitHub Actions connector...');
 
         // prepare the payload
         const submitRequestPayload = this.buildSigningRequestPayload();
 
-        // call the signPath API to submit the signing request
+        // call the connector to submit the signing request
         const response = (await axios
-            .post<SubmitSigningRequestResult>(this.urlBuilder.buildSubmitSigningRequestUrl(),
+            .post<SubmitSigningRequestResult>(submitSigningRequestUrl,
                 submitRequestPayload,
                 {
-                    responseType: "json",
-                    headers: {
-                        "Authorization": buildSignPathAuthorizationHeader(this.helperInputOutput.signPathApiToken)
-                    }
+                    responseType: "json"
                 })
             .catch((e: AxiosError) => {
 
@@ -101,9 +100,7 @@ export class Task {
 
         this.helperInputOutput.setSigningRequestId(response.signingRequestId);
         this.helperInputOutput.setSigningRequestWebUrl(response.signingRequestUrl);
-
-        // TODO: think what to set as output
-        // this.helperInputOutput.setSignPathApiUrl(this.urlBuilder.signPathBaseUrl + '/API');
+        this.helperInputOutput.setSignedArtifactDownloadUrl(this.urlBuilder.buildGetSignedArtifactUrl(response.signingRequestId))
 
         return response.signingRequestId;
     }
@@ -129,7 +126,6 @@ export class Task {
         }
     }
 
-    // TODO: what the heck
     // if auto-generated GitHub Actions token (secrets.GITHUB_TOKEN) is used for artifact download,
     // ensure the workflow continues running until the download is complete.
     // The token is valid only for the workflow's duration
@@ -205,15 +201,13 @@ export class Task {
 
     private async getSigningRequestStatus(signingRequestId: string): Promise<SigningRequestStatusDto> {
         const requestStatusUrl = this.urlBuilder.buildGetSigningRequestStatusUrl(signingRequestId);
+        core.info(`Sending request: GET ${requestStatusUrl}`)
 
         const signingRequestStatusDto = await axios
             .get<SigningRequestStatusDto>(
                 requestStatusUrl,
                 {
-                    responseType: "json",
-                    headers: {
-                        "Authorization": buildSignPathAuthorizationHeader(this.helperInputOutput.signPathApiToken)
-                    }
+                    responseType: "json"
                 }
             )
             .catch((e: AxiosError) => {
@@ -229,9 +223,19 @@ export class Task {
     private configureAxios(): void {
 
         // set user agent
-        axios.defaults.headers.common['User-Agent'] = this.buildUserAgent();
+        axios.defaults.headers.common['User-Agent'] = this.userAgent;
+
+        // set token for all outgoing requests
+        axios.defaults.headers.common.Authorization = `Bearer ${this.helperInputOutput.signPathApiToken}`
+
         const timeoutMs = this.helperInputOutput.serviceUnavailableTimeoutInSeconds * 1000
         axios.defaults.timeout = timeoutMs;
+
+        // log all outgoing requests
+        axios.interceptors.request.use(request => {
+            core.info(`Sending request: ${request.method?.toUpperCase()} ${request.url}`)
+            return request;
+        })
 
         // original axiosRetry doesn't work for POST requests
         // thats why we need to override some functions
@@ -285,11 +289,6 @@ export class Task {
             retryCondition: axiosRetry.isNetworkOrIdempotentRequestError
         });
 
-    }
-
-    private buildUserAgent(): string {
-        const userAgent = `SignPath.SubmitSigningRequestGitHubAction/${taskVersion}(NodeJS/${process.version}; ${process.platform} ${process.arch}})`;
-        return userAgent;
     }
 
     private checkResponseStructure(response: SubmitSigningRequestResult): void {
