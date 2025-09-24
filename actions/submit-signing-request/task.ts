@@ -201,8 +201,6 @@ export class Task {
 
     private async getSigningRequestStatus(signingRequestId: string): Promise<SigningRequestStatusDto> {
         const requestStatusUrl = this.urlBuilder.buildGetSigningRequestStatusUrl(signingRequestId);
-        core.info(`Sending request: GET ${requestStatusUrl}`)
-
         const signingRequestStatusDto = await axios
             .get<SigningRequestStatusDto>(
                 requestStatusUrl,
@@ -233,8 +231,17 @@ export class Task {
 
         // log all outgoing requests
         axios.interceptors.request.use(request => {
-            core.info(`Sending request: ${request.method?.toUpperCase()} ${request.url}`)
+            core.debug(`Sending request: ${request.method?.toUpperCase()} ${request.url}`);
             return request;
+        })
+
+        // log all outgoing responses
+        axios.interceptors.response.use(response => {
+            core.debug(`Received response: ${response.status} ${response.statusText} from ${response.request.url}`);
+            return response;
+        }, error => {
+            core.debug(`Received response: ${error.response.status} ${error.response.statusText}`)
+            return Promise.reject(error);
         })
 
         // original axiosRetry doesn't work for POST requests
