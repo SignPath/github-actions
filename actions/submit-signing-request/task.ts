@@ -295,7 +295,6 @@ export class Task {
             retries: maxRetryCount,
             retryCondition: axiosRetry.isNetworkOrIdempotentRequestError
         });
-
     }
 
     private checkResponseStructure(response: SubmitSigningRequestResult): void {
