@@ -9,7 +9,7 @@
     "lint": "tslint --project tsconfig.json"
   },
   "name": "signpath.connectors.githubactions.actions",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Use SignPath to sign your build artifacts.",
   "devDependencies": {
     "@types/chai": "^4.3.5",

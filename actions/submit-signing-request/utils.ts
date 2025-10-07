@@ -49,10 +49,6 @@ export function getInputNumber(name: string, options?: core.InputOptions): numbe
     return result;
 }
 
-export function buildSignPathAuthorizationHeader(apiToken: string): string {
-    return `Bearer ${apiToken}`;
-}
-
 export function httpErrorResponseToText(err: AxiosError): string {
 
     const response = err.response as AxiosResponse;

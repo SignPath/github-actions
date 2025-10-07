@@ -71,8 +71,4 @@ export class HelperInputOutput {
     setSigningRequestWebUrl(signingRequestUrl: string): void {
         core.setOutput('signing-request-web-url', signingRequestUrl);
     }
-
-    setSignPathApiUrl(signingRequestUrl: string): void {
-        core.setOutput('signpath-api-url', signingRequestUrl);
-    }
 }
