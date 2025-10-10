@@ -11,6 +11,7 @@ import { taskVersion } from './version';
 import { HelperArtifactDownload } from './helper-artifact-download';
 import { Config } from './config';
 import { SigningRequestStatusDto } from './dtos/signing-request-status';
+import { Agent } from 'https';
 
 // output variables
 // signingRequestId - the id of the newly created signing request
@@ -222,6 +223,9 @@ export class Task {
 
         // set user agent
         axios.defaults.headers.common['User-Agent'] = this.userAgent;
+        axios.defaults.httpsAgent = new Agent({
+            keepAlive: true
+        })
 
         // set token for all outgoing requests
         axios.defaults.headers.common.Authorization = `Bearer ${this.helperInputOutput.signPathApiToken}`
