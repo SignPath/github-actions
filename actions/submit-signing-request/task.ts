@@ -240,6 +240,7 @@ export class Task {
             core.debug(`Received response: ${response?.status} ${response?.statusText} from ${response?.request?.url}`);
             return response;
         }, error => {
+            core.debug(error)
             core.debug(`Received response: ${error?.response?.status} ${error?.response?.statusText}`)
             return Promise.reject(error);
         })
