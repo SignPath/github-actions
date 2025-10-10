@@ -235,12 +235,12 @@ export class Task {
             return request;
         })
 
-        // log all outgoing responses
+        // log all responses
         axios.interceptors.response.use(response => {
-            core.debug(`Received response: ${response.status} ${response.statusText} from ${response.request.url}`);
+            core.debug(`Received response: ${response?.status} ${response?.statusText} from ${response?.request?.url}`);
             return response;
         }, error => {
-            core.debug(`Received response: ${error.response.status} ${error.response.statusText}`)
+            core.debug(`Received response: ${error?.response?.status} ${error?.response?.statusText}`)
             return Promise.reject(error);
         })
 
