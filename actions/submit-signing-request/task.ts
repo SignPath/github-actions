@@ -221,17 +221,17 @@ export class Task {
 
     private configureAxios(): void {
 
+        const timeoutMs = this.helperInputOutput.serviceUnavailableTimeoutInSeconds * 1000
+
         // set user agent
         axios.defaults.headers.common['User-Agent'] = this.userAgent;
         axios.defaults.httpsAgent = new Agent({
-            keepAlive: true
+            keepAlive: true,
+            timeout: timeoutMs
         })
 
         // set token for all outgoing requests
         axios.defaults.headers.common.Authorization = `Bearer ${this.helperInputOutput.signPathApiToken}`
-
-        const timeoutMs = this.helperInputOutput.serviceUnavailableTimeoutInSeconds * 1000
-        axios.defaults.timeout = timeoutMs;
 
         // log all outgoing requests
         axios.interceptors.request.use(request => {
